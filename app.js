@@ -83,6 +83,25 @@ function acctCost(a) { return num(a.purchaseCost) + num(a.installationCost) + nu
 /* Tax cost base (defaults to accounting cost when not overridden) */
 function taxCost(a) { return a.taxCostOverride !== '' && a.taxCostOverride != null ? num(a.taxCostOverride) : acctCost(a); }
 
+/* ---------- Work in progress / in-service ----------
+   An asset may sit in a WIP holding category, carried at cost with no
+   depreciation, until it is placed in service. From that in-service date it
+   moves to its operating category and begins depreciating. These attributes
+   are effective-dated so historical financial years stay stable: the asset is
+   resolved to the category and depreciation status it held AS AT the reporting
+   date, not its latest state. */
+function hasWIP(a) { return !!(a && a.wipCategory && parseDate(a.inServiceDate)); }
+/* Date depreciation starts — the in-service date, else the acquisition date. */
+function depStartDate(a) { return parseDate(a.inServiceDate) || parseDate(a.acquisitionDate); }
+/* Category the asset is presented under as at a given date. */
+function categoryAsAt(a, atDate) {
+  const cat = a.category || 'Uncategorised';
+  if (!hasWIP(a)) return cat;
+  const h = atDate || reportingDate();
+  const svc = parseDate(a.inServiceDate);
+  return (svc && h < svc) ? a.wipCategory : cat;
+}
+
 /* =============================================================
    DEPRECIATION ENGINE
    Builds a FY-by-FY schedule from acquisition to the earlier of
@@ -111,6 +130,7 @@ function buildSchedule(a, kind, asOf) {
 
   const disposal = a.disposed ? parseDate(a.disposalDate) : null;
   const horizon = asOf || reportingDate();
+  const depStart = depStartDate(a) || acq;   // depreciation begins here (in-service date)
 
   let method, base, residual, lifeYears, rate, initialAllow;
   if (kind === 'acct') {
@@ -130,8 +150,8 @@ function buildSchedule(a, kind, asOf) {
   }
 
   const lifeEnd = (method === 'straight-line' && lifeYears)
-    ? endOfLife(a, acq, 'straight-line', lifeYears)
-    : (method === 'prime-cost' && lifeYears && !rate ? endOfLife(a, acq, 'prime-cost', lifeYears) : null);
+    ? endOfLife(a, depStart, 'straight-line', lifeYears)
+    : (method === 'prime-cost' && lifeYears && !rate ? endOfLife(a, depStart, 'prime-cost', lifeYears) : null);
 
   const rows = [];
   let opening = 0;
@@ -146,7 +166,7 @@ function buildSchedule(a, kind, asOf) {
   while (guard++ < 200) {
     const fyStart = fyStartFor(fyEnd);
 
-    // Service window inside this FY
+    // Existence window inside this FY (cost sits on the register from acquisition)
     const winStart = acq > fyStart ? acq : fyStart;
     let winEnd = fyEnd;
     if (disposal && disposal < winEnd) winEnd = disposal;
@@ -154,9 +174,13 @@ function buildSchedule(a, kind, asOf) {
     if (horizon < winEnd) winEnd = horizon;
     if (winEnd < winStart) break;
 
+    // Depreciation only runs once the asset is in service; while it is WIP
+    // (before depStart) it is carried at cost and earns no depreciation.
+    const depWinStart = depStart > winStart ? depStart : winStart;
     const daysInFY = daysBetween(fyStart, fyEnd) + 1;
-    const daysInService = daysBetween(winStart, winEnd) + 1;
-    const frac = Math.min(1, daysInService / daysInFY);
+    const depDays = winEnd >= depWinStart ? daysBetween(depWinStart, winEnd) + 1 : 0;
+    const frac = Math.min(1, depDays / daysInFY);
+    const inServiceThisFY = depStart >= fyStart && depStart <= fyEnd;
 
     opening = carry;
     const addition = firstFY ? base : 0;
@@ -176,8 +200,8 @@ function buildSchedule(a, kind, asOf) {
       } else { // reducing-balance / diminishing-value
         charge = opening * (rate / 100) * frac;
       }
-      // First-year additional tax initial allowance
-      if (firstFY && initialAllow) charge += base * (initialAllow / 100);
+      // Additional tax initial allowance, in the year the asset enters service
+      if (inServiceThisFY && initialAllow) charge += base * (initialAllow / 100);
       // Never depreciate below residual (nil for tax)
       charge = Math.min(charge, opening - residual);
       if (charge < 0) charge = 0;
@@ -323,7 +347,7 @@ function renderDashboard() {
     totalTaxWDV += tax.nbv;
     fyCharge += acct.chargeThisFY;
     fyTaxCharge += tax.chargeThisFY;
-    const c = a.category || 'Uncategorised';
+    const c = categoryAsAt(a);
     if (!byCat[c]) byCat[c] = { cost: 0, nbv: 0, count: 0 };
     byCat[c].cost += acctCost(a);
     byCat[c].nbv += acct.nbv;
@@ -382,7 +406,7 @@ function renderAssets() {
   const searching = !!filterState.q;
   const list = filteredAssets();
   const groups = {};
-  list.forEach(a => { const c = a.category || 'Uncategorised'; (groups[c] = groups[c] || []).push(a); });
+  list.forEach(a => { const c = categoryAsAt(a); (groups[c] = groups[c] || []).push(a); });
   const cats = Object.keys(groups).sort();
 
   let tCost = 0, tAcc = 0, tNbv = 0, bodies = '';
@@ -456,7 +480,7 @@ function toggleAssetsCat(key) {
   renderAssets();
 }
 function toggleAllAssetsCats() {
-  const cats = Array.from(new Set(filteredAssets().map(a => a.category || 'Uncategorised')));
+  const cats = Array.from(new Set(filteredAssets().map(a => categoryAsAt(a))));
   const keys = cats.map(c => 'assets::' + c);
   const allOpen = keys.length && keys.every(k => expandedCats.has(k));
   keys.forEach(k => { if (allOpen) expandedCats.delete(k); else expandedCats.add(k); });
@@ -465,7 +489,7 @@ function toggleAllAssetsCats() {
 function updateAssetsExpandButton() {
   const btn = $('#assets-expand');
   if (!btn) return;
-  const cats = Array.from(new Set(filteredAssets().map(a => a.category || 'Uncategorised')));
+  const cats = Array.from(new Set(filteredAssets().map(a => categoryAsAt(a))));
   const allOpen = cats.length && cats.every(c => expandedCats.has('assets::' + c));
   btn.textContent = allOpen ? 'Collapse all' : 'Expand all';
 }
@@ -504,6 +528,43 @@ function methodLabelFor(a, kind) {
 }
 
 function movCell(v) { return v ? '(' + fmt(v) + ')' : '–'; }
+/* Signed transfer cell: transfer-in positive, transfer-out in parentheses. */
+function xferCell(v) {
+  if (!v || Math.abs(v) < 0.005) return '–';
+  return v > 0 ? fmt(v) : '(' + fmt(-v) + ')';
+}
+
+/* Register contribution(s) for one asset in the reporting FY. Normally one line
+   grouped under the asset's as-at category. In the financial year a WIP asset is
+   placed in service it produces TWO lines: a transfer-out of the holding
+   category and a transfer-in to the operating category, netting to nil on cost
+   so category subtotals reconcile. */
+function registerLines(a, kind) {
+  const m = assetMovement(a, kind);
+  const H = reportingDate();
+  const fyEnd = fyEndFor(H), fyStart = fyStartFor(fyEnd);
+  const acq = parseDate(a.acquisitionDate);
+  const svc = parseDate(a.inServiceDate);
+  const cost = kind === 'acct' ? acctCost(a) : taxCost(a);
+  // Show the transfer only once the reporting date has actually reached the
+  // in-service date within its financial year (H >= svc); before that the asset
+  // is still WIP and falls through to the single-line branch below.
+  const transferThisFY = hasWIP(a) && svc && svc >= fyStart && svc <= fyEnd && H >= svc && acq && !sameFY(acq, svc);
+  if (transferThisFY) {
+    return [
+      { cat: a.wipCategory, opening: cost, addition: 0, transfer: -cost, charge: 0, disposal: 0, closing: 0, sched: null, transferRow: -1 },
+      { cat: a.category || 'Uncategorised', opening: 0, addition: 0, transfer: cost, charge: m.charge, disposal: m.disposal, closing: m.closing, sched: m.sched, transferRow: 1 },
+    ];
+  }
+  return [{ cat: categoryAsAt(a, H), opening: m.opening, addition: m.addition, transfer: 0, charge: m.charge, disposal: m.disposal, closing: m.closing, sched: m.sched, transferRow: 0 }];
+}
+
+/* Distinct display categories a register groups into (mirrors renderRegister). */
+function registerGroupCats(kind) {
+  const set = new Set();
+  activeAssets().forEach(a => registerLines(a, kind).forEach(ln => set.add(ln.cat || 'Uncategorised')));
+  return Array.from(set);
+}
 
 function renderRegister(kind) {
   const wrap = $('#' + kind + '-wrap');
@@ -512,49 +573,59 @@ function renderRegister(kind) {
   const fyStart = fyStartFor(fyEnd);
   const closeLbl = kind === 'tax' ? 'TWDV' : 'NBV';
 
-  const list = activeAssets().slice().sort((a, b) => (a.tag || '').localeCompare(b.tag || ''));
+  // Build category → contribution lines. A WIP asset placed in service in the
+  // viewed FY splits across its holding and operating categories (see registerLines).
   const groups = {};
-  list.forEach(a => { const c = a.category || 'Uncategorised'; (groups[c] = groups[c] || []).push(a); });
+  activeAssets().forEach(a => {
+    registerLines(a, kind).forEach(ln => {
+      const c = ln.cat || 'Uncategorised';
+      (groups[c] = groups[c] || []).push({ a, ln });
+    });
+  });
   const cats = Object.keys(groups).sort();
 
-  let tO = 0, tA = 0, tC = 0, tD = 0, tCl = 0;
+  let tO = 0, tA = 0, tX = 0, tC = 0, tD = 0, tCl = 0;
   let bodies = '';
 
   cats.forEach(cat => {
-    const items = groups[cat];
-    let cO = 0, cA = 0, cC = 0, cD = 0, cCl = 0, hidden = 0;
+    const entries = groups[cat].slice().sort((p, q) => (p.a.tag || '').localeCompare(q.a.tag || ''));
+    let cO = 0, cA = 0, cX = 0, cC = 0, cD = 0, cCl = 0, hidden = 0;
     const detailRows = [];
-    items.forEach(a => {
-      const m = assetMovement(a, kind);
-      cO += m.opening; cA += m.addition; cC += m.charge; cD += m.disposal; cCl += m.closing;
+    entries.forEach(({ a, ln }) => {
+      cO += ln.opening; cA += ln.addition; cX += ln.transfer; cC += ln.charge; cD += ln.disposal; cCl += ln.closing;
       // Dormant & nil: no opening, no movement, no closing — hide unless toggled on.
-      const dormantNil = Math.abs(m.opening) < 0.005 && Math.abs(m.addition) < 0.005 &&
-        Math.abs(m.charge) < 0.005 && Math.abs(m.disposal) < 0.005 && Math.abs(m.closing) < 0.005;
+      const dormantNil = Math.abs(ln.opening) < 0.005 && Math.abs(ln.addition) < 0.005 && Math.abs(ln.transfer) < 0.005 &&
+        Math.abs(ln.charge) < 0.005 && Math.abs(ln.disposal) < 0.005 && Math.abs(ln.closing) < 0.005;
       if (dormantNil && !showFullyDepreciated) { hidden++; return; }
+      const tag = ln.transferRow === -1 ? ' <span class="pill amber">transfer out &rarr;</span>'
+        : ln.transferRow === 1 ? ' <span class="pill amber">&rarr; transfer in</span>' : '';
+      const schedCell = ln.sched ? `<details class="sched"><summary>Schedule</summary>${scheduleTable(ln.sched, kind)}</details>` : '';
       detailRows.push(`<tr class="asset-row">
         <td class="asset-name">
-          <strong>${esc(a.tag || a.id)}</strong> ${esc(a.description || '')}
+          <strong>${esc(a.tag || a.id)}</strong> ${esc(a.description || '')}${tag}
           <div class="hint-text">${methodLabelFor(a, kind)}${a.department ? ' · ' + esc(a.department) : ''}</div>
-          <details class="sched"><summary>Schedule</summary>${scheduleTable(m.sched, kind)}</details>
+          ${schedCell}
         </td>
-        <td class="num">${fmt(m.opening)}</td>
-        <td class="num">${m.addition ? fmt(m.addition) : '–'}</td>
-        <td class="num">${movCell(m.charge)}</td>
-        <td class="num">${movCell(m.disposal)}</td>
-        <td class="num">${fmt(m.closing)}</td>
+        <td class="num">${fmt(ln.opening)}</td>
+        <td class="num">${ln.addition ? fmt(ln.addition) : '–'}</td>
+        <td class="num">${xferCell(ln.transfer)}</td>
+        <td class="num">${movCell(ln.charge)}</td>
+        <td class="num">${movCell(ln.disposal)}</td>
+        <td class="num">${fmt(ln.closing)}</td>
       </tr>`);
     });
-    if (hidden) detailRows.push(`<tr class="asset-row hint"><td colspan="6" class="hint-text" style="padding-left:28px">${hidden} fully-depreciated asset${hidden > 1 ? 's' : ''} hidden &middot; tick &ldquo;Show fully-depreciated&rdquo; to view.</td></tr>`);
+    if (hidden) detailRows.push(`<tr class="asset-row hint"><td colspan="7" class="hint-text" style="padding-left:28px">${hidden} fully-depreciated asset${hidden > 1 ? 's' : ''} hidden &middot; tick &ldquo;Show fully-depreciated&rdquo; to view.</td></tr>`);
     const detail = detailRows.join('');
 
-    tO += cO; tA += cA; tC += cC; tD += cD; tCl += cCl;
+    tO += cO; tA += cA; tX += cX; tC += cC; tD += cD; tCl += cCl;
     const key = kind + '::' + cat;
     const open = expandedCats.has(key);
     bodies += `<tbody class="cat-group">
       <tr class="cat-row${open ? ' open' : ''}" data-key="${esc(key)}">
-        <td class="cat-name"><span class="chev">▸</span> ${esc(cat)} <span class="count">${items.length}</span></td>
+        <td class="cat-name"><span class="chev">▸</span> ${esc(cat)} <span class="count">${entries.length}</span></td>
         <td class="num">${fmt(cO)}</td>
         <td class="num">${cA ? fmt(cA) : '–'}</td>
+        <td class="num">${xferCell(cX)}</td>
         <td class="num">${movCell(cC)}</td>
         <td class="num">${movCell(cD)}</td>
         <td class="num">${fmt(cCl)}</td>
@@ -563,12 +634,13 @@ function renderRegister(kind) {
     </tbody>`;
   });
 
-  const empty = `<tbody><tr class="empty-row"><td colspan="6">No assets to report.</td></tr></tbody>`;
+  const empty = `<tbody><tr class="empty-row"><td colspan="7">No assets to report.</td></tr></tbody>`;
   wrap.innerHTML = `<table class="reg-table">
     <thead><tr>
       <th>Category / Asset</th>
       <th class="num">Opening ${closeLbl}<div class="hint-th">${fmtDate(fyStart)}</div></th>
       <th class="num">Additions</th>
+      <th class="num">Transfers</th>
       <th class="num">Depreciation</th>
       <th class="num">Disposals</th>
       <th class="num">Closing ${closeLbl}<div class="hint-th">${fmtDate(fyEnd)}</div></th>
@@ -578,6 +650,7 @@ function renderRegister(kind) {
       <td>Totals — ${fyLabel(fyEnd)}</td>
       <td class="num">${fmt(tO)}</td>
       <td class="num">${tA ? fmt(tA) : '–'}</td>
+      <td class="num">${xferCell(tX)}</td>
       <td class="num">${movCell(tC)}</td>
       <td class="num">${movCell(tD)}</td>
       <td class="num">${fmt(tCl)}</td>
@@ -645,9 +718,8 @@ function toggleCat(key) {
 }
 
 function toggleAllCats(kind) {
-  const cats = Array.from(new Set(activeAssets().map(a => a.category || 'Uncategorised')));
-  const keys = cats.map(c => kind + '::' + c);
-  const allOpen = keys.every(k => expandedCats.has(k));
+  const keys = registerGroupCats(kind).map(c => kind + '::' + c);
+  const allOpen = keys.length && keys.every(k => expandedCats.has(k));
   keys.forEach(k => { if (allOpen) expandedCats.delete(k); else expandedCats.add(k); });
   renderRegister(kind);
 }
@@ -655,7 +727,7 @@ function toggleAllCats(kind) {
 function updateExpandButton(kind) {
   const btn = $('#' + kind + '-expand');
   if (!btn) return;
-  const cats = Array.from(new Set(activeAssets().map(a => a.category || 'Uncategorised')));
+  const cats = registerGroupCats(kind);
   const allOpen = cats.length && cats.every(c => expandedCats.has(kind + '::' + c));
   btn.textContent = allOpen ? 'Collapse all' : 'Expand all';
 }
@@ -717,6 +789,7 @@ function renderDisposals() {
 function blankAsset() {
   return {
     id: uid(), tag: '', description: '', category: '', location: '', department: '', custodian: '',
+    wipCategory: '', inServiceDate: '',
     supplier: '', invoice: '', acquisitionDate: toISO(new Date()),
     purchaseCost: '', installationCost: '', otherCost: '',
     acctMethod: 'straight-line', usefulLife: 5, residualValue: '', acctRate: '',
@@ -749,6 +822,11 @@ function openAsset(id) {
       <div class="field"><label>Installation / freight</label><input id="f-installationCost" type="number" step="0.01" value="${esc(g('installationCost'))}"></div>
       <div class="field"><label>Other capitalised cost</label><input id="f-otherCost" type="number" step="0.01" value="${esc(g('otherCost'))}"></div>
       <div class="field"><label>Total capitalised</label><input id="f-totalCost" disabled value="${fmt(acctCost(a))}"></div>
+
+      <div class="form-section-title">Work in progress / commissioning</div>
+      <div class="field"><label>WIP holding category <span class="hint-text">(while under construction)</span></label><input id="f-wipCategory" list="cat-list" value="${esc(g('wipCategory'))}" placeholder="e.g. 150120-Asset WIP"></div>
+      <div class="field"><label>Placed-in-service date <span class="hint-text">(depreciation starts; blank = at acquisition)</span></label><input id="f-inServiceDate" type="date" value="${esc(g('inServiceDate'))}"></div>
+      <div class="field full"><p class="hint-text" style="margin:0">The category above is the asset's <strong>operating</strong> category. If a WIP holding category and an in-service date are set, the asset is carried at cost with no depreciation under the holding category until that date, then transfers to its operating category and begins depreciating — so prior financial years stay unchanged.</p></div>
 
       <div class="form-section-title">Accounting depreciation</div>
       <div class="field"><label>Method</label>
@@ -801,6 +879,8 @@ function saveAsset() {
     location: val('f-location').trim(),
     department: val('f-department').trim(),
     custodian: val('f-custodian').trim(),
+    wipCategory: val('f-wipCategory').trim(),
+    inServiceDate: val('f-inServiceDate'),
     acquisitionDate: val('f-acquisitionDate'),
     supplier: val('f-supplier').trim(),
     invoice: val('f-invoice').trim(),
@@ -857,14 +937,14 @@ function exportJSON() {
 function exportCSV(kind) {
   let headers, rows;
   if (kind === 'assets') {
-    headers = ['Tag', 'Description', 'Category', 'Location', 'Department', 'Custodian', 'Acquisition Date',
+    headers = ['Tag', 'Description', 'Category', 'WIP Category', 'In-Service Date', 'Location', 'Department', 'Custodian', 'Acquisition Date',
       'Supplier', 'Invoice', 'Purchase Cost', 'Installation', 'Other', 'Total Cost',
       'Acct Method', 'Useful Life', 'Residual', 'Acct Rate %',
       'Tax Cost', 'Tax Method', 'Tax Rate %', 'Tax Life', 'Initial Allowance %',
       'Disposed', 'Disposal Date', 'Proceeds', 'Accum Dep', 'NBV', 'Tax WDV'];
     rows = assets.map(a => {
       const acct = positionAt(a, 'acct'), tax = positionAt(a, 'tax');
-      return [a.tag, a.description, a.category, a.location, a.department, a.custodian, a.acquisitionDate,
+      return [a.tag, a.description, a.category, a.wipCategory || '', a.inServiceDate || '', a.location, a.department, a.custodian, a.acquisitionDate,
         a.supplier, a.invoice, num(a.purchaseCost), num(a.installationCost), num(a.otherCost), acctCost(a),
         a.acctMethod, a.usefulLife, num(a.residualValue), num(a.acctRate),
         taxCost(a), a.taxMethod, num(a.taxRate), a.taxLife, num(a.taxInitialAllowance),
