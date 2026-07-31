@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fixed Asset Register</title>
   <meta name="description" content="Fixed Asset Register with separate accounting and tax depreciation registers. Runs entirely in your browser." />
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
   <header class="app-header">
@@ -60,6 +60,7 @@
         <div class="field"><label>Search</label><input type="search" id="search" placeholder="Tag, description, location&hellip;"></div>
         <div class="field"><label>Status</label>
           <select id="filter-status"><option value="">All</option><option value="active">Active</option><option value="disposed">Disposed</option></select></div>
+        <div class="field"><label>&nbsp;</label><label class="chk"><input type="checkbox" id="assets-showall"> Show fully-depreciated</label></div>
         <div class="field"><label>&nbsp;</label><button id="assets-expand">Expand all</button></div>
       </div>
       <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Assets are grouped by category &mdash; each row shows the category summary. Click a category to drop down into its individual assets.</p></div>
@@ -72,6 +73,7 @@
         <div><h2>Accounting depreciation register</h2><div class="desc" id="acct-fy-label"></div></div>
         <div class="toolbar">
           <label class="fy-picker">Financial year <select id="acct-fy-select"></select></label>
+          <label class="chk"><input type="checkbox" id="acct-showall"> Show fully-depreciated</label>
           <button id="acct-expand">Expand all</button>
           <button id="exp-acct">Export CSV</button>
         </div>
@@ -86,6 +88,7 @@
         <div><h2>Tax depreciation register (capital allowances)</h2><div class="desc" id="tax-fy-label"></div></div>
         <div class="toolbar">
           <label class="fy-picker">Financial year <select id="tax-fy-select"></select></label>
+          <label class="chk"><input type="checkbox" id="tax-showall"> Show fully-depreciated</label>
           <button id="tax-expand">Expand all</button>
           <button id="exp-tax">Export CSV</button>
         </div>
@@ -169,7 +172,7 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="data-aus155.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="data-aus155.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
