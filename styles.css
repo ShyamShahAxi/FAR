@@ -185,6 +185,21 @@ input[type="search"] { min-width: 220px; }
 details.sched { margin-top: 6px; }
 details.sched summary { cursor: pointer; color: var(--brand); font-size: 0.8rem; font-weight: 600; }
 
+/* Grouped, collapsible registers */
+.fy-picker { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.fy-picker select { font-weight: 600; }
+.reg-table th .hint-th { font-weight: 500; color: var(--muted); font-size: 0.68rem; text-transform: none; letter-spacing: 0; margin-top: 2px; }
+.reg-table .cat-row { cursor: pointer; background: #f1f5f9; }
+.reg-table .cat-row:hover { background: #e8eef6; }
+.reg-table .cat-row td { font-weight: 700; border-top: 1px solid var(--line); }
+.reg-table .cat-name .chev { display: inline-block; transition: transform 0.15s ease; color: var(--brand); font-size: 0.8rem; }
+.reg-table .cat-row.open .chev { transform: rotate(90deg); }
+.reg-table .cat-name .count { display: inline-block; background: #dbeafe; color: var(--brand-dark); border-radius: 999px; padding: 1px 8px; font-size: 0.72rem; font-weight: 600; margin-left: 4px; }
+.reg-table .asset-row td { background: #fff; }
+.reg-table .asset-row .asset-name { padding-left: 28px; white-space: normal; max-width: 420px; }
+.reg-table .asset-row .asset-name strong { color: var(--brand-dark); }
+.reg-table tfoot td { position: sticky; bottom: 0; }
+
 .toast {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
   background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 10px;
