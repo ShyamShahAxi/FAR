@@ -876,6 +876,14 @@ function wire() {
 
 document.addEventListener('DOMContentLoaded', () => {
   wire();
+  // First visit (no saved data yet): seed the AUS155 register so the app
+  // isn't empty. Existing saved data is never overwritten.
+  if (!assets.length && window.AUS155 && Array.isArray(window.AUS155.assets)) {
+    assets = JSON.parse(JSON.stringify(window.AUS155.assets));
+    settings = Object.assign({}, defaultSettings, window.AUS155.settings || {});
+    saveAssets();
+    saveSettings();
+  }
   applySettingsToUI();
   activateTab('dashboard');
 });
