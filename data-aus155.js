@@ -10,7 +10,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0001",
       "tag": "A2200008",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Lenovo TP X1 Yoga G5 i7 (2)",
       "location": "",
       "department": "IT - Support",
@@ -38,7 +38,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0002",
       "tag": "A2200016",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "20XYCTO1WW Lenovo ThinkPad X1 Yoga Gen 6 (Qty 18)",
       "location": "",
       "department": "IT - Support",
@@ -66,7 +66,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0003",
       "tag": "A2200017",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Lenovo ThinkPad X1 Yoga Gen 6",
       "location": "",
       "department": "IT - Support",
@@ -94,7 +94,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0004",
       "tag": "A2200020",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "1 x Lenovo YOGA 7 and 1x ThinkPad Universal USB-C Dock - UK",
       "location": "",
       "department": "IT - Support",
@@ -122,7 +122,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0005",
       "tag": "A2200021",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "LENOVO THINKVISION T24I-2L 23.8\" MONITOR (VGA + HDMI + DP) - FHD",
       "location": "",
       "department": "IT - Support",
@@ -150,7 +150,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0006",
       "tag": "A2200022",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "7 x ThinkPad Yoga G6 & 7 x USB C Dock & 7 x ThinkVision Monitor & 7 x Lenovo Wireless Keyboard",
       "location": "",
       "department": "IT - Support",
@@ -178,7 +178,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0007",
       "tag": "A2200034",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "10x ThinkPad, 20x Monitor , 10x KB & Mouse",
       "location": "",
       "department": "IT - Support",
@@ -206,7 +206,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0008",
       "tag": "A2200035",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkPad Yoga G6, - 10 items",
       "location": "",
       "department": "IT - Support",
@@ -234,7 +234,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0009",
       "tag": "A2200036",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "11 x Lenovo ThinkPad X1 Yoga Gen 6",
       "location": "",
       "department": "IT - Support",
@@ -262,7 +262,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0010",
       "tag": "A2200039",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Jabra Evolve 40 UC Stereo Office Headset, USB-A, 3.5mm",
       "location": "",
       "department": "IT - Support",
@@ -290,7 +290,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0011",
       "tag": "A2200045",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "10 Jabra Evolve 40 UC Stereo Office Headset",
       "location": "",
       "department": "IT - Development",
@@ -318,7 +318,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0012",
       "tag": "A2200077",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkBook 14 Gen2 ITL (1)",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -346,7 +346,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0013",
       "tag": "A2200078",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Lenovo ThinkPad X1 Yoga Gen5 IML (12), USB docks (12), monitors (24), mouse (12)",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -374,7 +374,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0014",
       "tag": "A2300010",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "1 Prism X490 Monitor",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -402,7 +402,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0015",
       "tag": "A2300011",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "1 ThinkPad X1 Yoga Gen7",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -430,7 +430,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0016",
       "tag": "A2300026",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Botanica & Co",
       "location": "",
       "department": "Retail - Sales, APAC Sales",
@@ -458,7 +458,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0017",
       "tag": "A2300029",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkPad Universal USB-C Dock (10); ThinkPad X1 Yoga G7(4); Lenovo ESSENTIAL WIRELESS KEYBOARD AND MOUSE (10)",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -486,7 +486,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0018",
       "tag": "A2300031",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "HEADPHONES SG (Jabra Headsets 1qty)",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -514,7 +514,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0019",
       "tag": "A2300032",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "HEADPHONES SG (Jabra Evolve 40 UC Stereo Office Headset, USB-A, 3.5mm - 15qty)",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -542,7 +542,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0020",
       "tag": "A2300039",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "CDCO001\\DC-IV-202303-802\\Laptop",
       "location": "",
       "department": "IT - Support, Technology Operations",
@@ -570,7 +570,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0021",
       "tag": "A2300040",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "CDCO001\\DC-IV-202303-802\\Laptop",
       "location": "155 - AXICORP PTE. LTD (SG) USD",
       "department": "IT - Support, Technology Operations",
@@ -598,7 +598,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0022",
       "tag": "APY00045",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Juniper Switches for SG",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -626,7 +626,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0023",
       "tag": "APY00046",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "3x LG LED TV w/ Swivel bracket & installation",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -654,7 +654,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0024",
       "tag": "APY00047",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "2x Lenovo Thinkpad Thunderbolt 3 dock",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -682,7 +682,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0025",
       "tag": "APY00069",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "IS_001 - Cyber FX Trade Server equipment",
       "location": "INDONESIA",
       "department": "Institutional - Sales",
@@ -710,7 +710,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0026",
       "tag": "APY00076",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "6x Lenovo Thinkvision 23.8\" monitor",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -738,7 +738,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0027",
       "tag": "APY00077",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "2x Lenovo thinkvision 23.8\" monitor",
       "location": "",
       "department": "IT - Support",
@@ -766,7 +766,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0028",
       "tag": "APY00078",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "2x Lenovo thinkpad thunderbolt 3 dock Gen",
       "location": "",
       "department": "IT - Support",
@@ -794,7 +794,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0029",
       "tag": "APY00079",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "1x Lenovo USB-C to USB-C cable",
       "location": "",
       "department": "IT - Support",
@@ -822,7 +822,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0030",
       "tag": "APY00080",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "2x Logitech MK120 USB desktop combo",
       "location": "",
       "department": "IT - Support",
@@ -850,7 +850,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0031",
       "tag": "APY00094",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "H Kher - Lenovo thinkvsion Monitor",
       "location": "",
       "department": "IT - Support",
@@ -878,7 +878,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0032",
       "tag": "APY00095",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "H Kher - Lenovo keyboard & mouse",
       "location": "",
       "department": "IT - Support",
@@ -906,7 +906,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0033",
       "tag": "APY00096",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "H Kher - Dericam webcam ultra HD",
       "location": "",
       "department": "IT - Support",
@@ -934,7 +934,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0034",
       "tag": "APY00110",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "H Kher - laptopdirect 10/07/20",
       "location": "",
       "department": "Corporate",
@@ -962,7 +962,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0035",
       "tag": "APY00112",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "S Tay - 1x Logitech Full HD Pro Webcam 17/04/20",
       "location": "",
       "department": "Retail - Operations",
@@ -990,7 +990,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0036",
       "tag": "APY00113",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "H Kher - 1x Jabra Speak 510 USB phone 20/07/20",
       "location": "",
       "department": "Corporate",
@@ -1018,7 +1018,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0037",
       "tag": "APY00119",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "10x Lenovo Thinkvision T24I-20 23.8\" monitor",
       "location": "",
       "department": "IT - Support",
@@ -1046,7 +1046,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0038",
       "tag": "APY00130",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "10x Lenovo Thinkvision T24I-20",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -1074,7 +1074,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0039",
       "tag": "APY00139",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "4x Lenovo Thinkpad Hybrid USB-C w/ dock",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -1102,7 +1102,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0040",
       "tag": "APY00144",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkPad X1 Yoga Gen5, Intel Core i7",
       "location": "",
       "department": "IT - Support",
@@ -1130,7 +1130,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0041",
       "tag": "AUS155-0001",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Lenovo ThinkCentre M70s Gen 4",
       "location": "",
       "department": "Corporate - Executive",
@@ -1158,7 +1158,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0042",
       "tag": "AUS155-0002",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkStation P14s Gen4",
       "location": "",
       "department": "Corporate - Executive",
@@ -1186,7 +1186,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0043",
       "tag": "AUS155-0003",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkStation P14s Gen4",
       "location": "",
       "department": "Corporate - Executive",
@@ -1214,7 +1214,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0044",
       "tag": "AUS155-0004",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkStation P14s Gen4",
       "location": "",
       "department": "Corporate - Executive",
@@ -1242,7 +1242,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0045",
       "tag": "AUS155-0005",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkStation P14s Gen4",
       "location": "",
       "department": "Corporate - Executive",
@@ -1270,7 +1270,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0046",
       "tag": "AUS155-0006",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkStation P14s Gen4",
       "location": "",
       "department": "Corporate - Executive",
@@ -1298,7 +1298,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0047",
       "tag": "AUS155-0019",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "4x ThinkStation P14s Gen 5 and Premier Support",
       "location": "Singapore-AUS155",
       "department": "IT - Support, Technology Operations",
@@ -1326,7 +1326,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0048",
       "tag": "AUS155-0020",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "ThinkStation P14s Gen 5",
       "location": "Singapore-AUS155",
       "department": "IT - Support, Technology Operations",
@@ -1354,7 +1354,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0049",
       "tag": "AUS155-0021",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "SG Boardroom and Video Setup",
       "location": "Singapore-AUS155",
       "department": "IT - Support, Technology Operations",
@@ -1382,7 +1382,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0050",
       "tag": "AUS155-0022",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Samsung 65\" Crystal UHD Signage QB65C and Office set up",
       "location": "Singapore-AUS155",
       "department": "IT - Support, Technology Operations",
@@ -1410,7 +1410,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0051",
       "tag": "AUS155-0023",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "MacBook Pro 16in, Apple M4 Max,48GB,1TB Storage",
       "location": "Singapore-AUS155",
       "department": "IT - Support, Technology Operations",
@@ -1438,7 +1438,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0052",
       "tag": "AUS155-0031",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "16-inch MacBook Pro - Space Black",
       "location": "Singapore-AUS155",
       "department": "Technology Operations",
@@ -1466,7 +1466,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0053",
       "tag": "AUS155-0032",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "Samsung 55\" Crystal UHD Signage QMC (3 Warranty) - Ultra Slim Depth - Even Bezel - Centered VESA Holes",
       "location": "Singapore-AUS155",
       "department": "Technology Operations",
@@ -1494,7 +1494,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0054",
       "tag": "AUS155-0033",
-      "category": "Computer Equipment",
+      "category": "140100-Computer Equipment",
       "description": "14inch MacBook Pro - Space Black",
       "location": "Singapore-AUS155",
       "department": "Technology Operations",
@@ -1522,7 +1522,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0055",
       "tag": "APY00175",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Supply and install 2 x workstations Oct18",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1550,7 +1550,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0056",
       "tag": "APY00176",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Supply&install server workstn,power/telph point",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1578,7 +1578,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0057",
       "tag": "APY00177",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Office furnitures (2x chairs & 8x paintings)",
       "location": "SINGAPORE",
       "department": "Retail",
@@ -1606,7 +1606,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0058",
       "tag": "APY00178",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "M Koh - Furniture for Reception area 04/12/18",
       "location": "",
       "department": "Retail - Operations",
@@ -1634,7 +1634,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0059",
       "tag": "APY00189",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Tables & chairs for SG new office + dismantling",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1662,7 +1662,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0060",
       "tag": "APY00190",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Staff & Meeting chairs for SG new office",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1690,7 +1690,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0061",
       "tag": "APY00192",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Tables & chairs for SG new office",
       "location": "PSYQUATION",
       "department": "Corporate",
@@ -1718,7 +1718,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0062",
       "tag": "APY00193",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Tables and chairs - Affiliate Summit AsiaPac 2019",
       "location": "LONDON",
       "department": "Retail - Marketing",
@@ -1746,7 +1746,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0063",
       "tag": "APY00194",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "Furniture for reception area",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1774,7 +1774,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0064",
       "tag": "APY00197",
-      "category": "Furniture and Equipment",
+      "category": "140200-Furniture and Equipment",
       "description": "30x Training Chairs",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1802,7 +1802,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0065",
       "tag": "APY00212",
-      "category": "Fixtures and Fittings",
+      "category": "140220-Fixtures and Fittings",
       "description": "Aerohive AP130 Wireless Access Pt,Service estimate",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -1830,7 +1830,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0066",
       "tag": "APY00213",
-      "category": "Fixtures and Fittings",
+      "category": "140220-Fixtures and Fittings",
       "description": "2x Canvas & frames for new SG office",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1858,7 +1858,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0067",
       "tag": "APY00214",
-      "category": "Fixtures and Fittings",
+      "category": "140220-Fixtures and Fittings",
       "description": "3rd claims-30% deposit for Fitting-out Anson Rd",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -1886,7 +1886,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0068",
       "tag": "APY00224",
-      "category": "Fixtures and Fittings",
+      "category": "140220-Fixtures and Fittings",
       "description": "Rework canvas in new SG office 09/09/19",
       "location": "SINGAPORE",
       "department": "Corporate",
@@ -1914,7 +1914,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0069",
       "tag": "APY00234",
-      "category": "Leasehold Improvement",
+      "category": "140320-Leasehold Improvement",
       "description": "30% deposit for Fitting-out proj Anson Rd",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -1942,7 +1942,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0070",
       "tag": "APY00239",
-      "category": "Leasehold Improvement",
+      "category": "140320-Leasehold Improvement",
       "description": "2nd claims-30% deposit for Fitting-out Anson Rd",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -1970,7 +1970,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0071",
       "tag": "APY00240",
-      "category": "Leasehold Improvement",
+      "category": "140320-Leasehold Improvement",
       "description": "4th claims of 10% final payment re GETQ190337",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -1998,7 +1998,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0072",
       "tag": "APY00243",
-      "category": "Leasehold Improvement",
+      "category": "140320-Leasehold Improvement",
       "description": "5th claims of payment re GETQ190337",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -2026,7 +2026,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0073",
       "tag": "APY00245",
-      "category": "Leasehold Improvement",
+      "category": "140320-Leasehold Improvement",
       "description": "Reinstatement works re quotation GETQ190336",
       "location": "SINGAPORE",
       "department": "IT - Support",
@@ -2054,7 +2054,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0074",
       "tag": "A2200099",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Lagom",
       "location": "155 - AXICORP PTE. LTD (SG) USD",
       "department": "IT - Development, Technology Operations",
@@ -2082,7 +2082,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0075",
       "tag": "A2200103",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Payments v2",
       "location": "155 - AXICORP PTE. LTD (SG) USD",
       "department": "Product",
@@ -2110,7 +2110,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0076",
       "tag": "A2200106",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Axi Select",
       "location": "155 - AXICORP PTE. LTD (SG) USD",
       "department": "Product",
@@ -2138,7 +2138,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0077",
       "tag": "A2200110",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Client Data - Onboarding",
       "location": "155 - AXICORP PTE. LTD (SG) USD",
       "department": "Product",
@@ -2166,7 +2166,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0078",
       "tag": "AUS155-0007",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - ATP",
       "location": "",
       "department": "IT - Development, Technology Operations",
@@ -2194,7 +2194,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0079",
       "tag": "AUS155-0008",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - Automated Leverage Change",
       "location": "",
       "department": "IT - Development, Technology Operations",
@@ -2222,7 +2222,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0080",
       "tag": "AUS155-0009",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - Axi Select",
       "location": "",
       "department": "IT - Development, Technology Operations",
@@ -2250,7 +2250,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0081",
       "tag": "AUS155-0010",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - Back Office",
       "location": "",
       "department": "IT - Development, Technology Operations",
@@ -2278,7 +2278,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0082",
       "tag": "AUS155-0011",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - Client Data On-Boarding",
       "location": "",
       "department": "Product",
@@ -2306,7 +2306,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0083",
       "tag": "AUS155-0012",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - Data Platform",
       "location": "",
       "department": "Product",
@@ -2334,7 +2334,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0084",
       "tag": "AUS155-0013",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - OB Lite",
       "location": "",
       "department": "IT - Development, Technology Operations",
@@ -2362,7 +2362,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0085",
       "tag": "AUS155-0014",
-      "category": "Software Development",
+      "category": "150100-Software Development",
       "description": "Tech Capitalisation FY24 - Payment V2",
       "location": "",
       "department": "Product",
@@ -2390,7 +2390,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0086",
       "tag": "AUS155-0024",
-      "category": "Asset WIP",
+      "category": "150120-Asset WIP",
       "description": "Axi Select FY25",
       "location": "Singapore-AUS155",
       "department": "IT - Development",
@@ -2403,12 +2403,12 @@ window.AUS155 = {
       "otherCost": "",
       "acctMethod": "straight-line",
       "usefulLife": 5,
-      "residualValue": "0",
+      "residualValue": "267369.95",
       "acctRate": "",
       "taxCostOverride": "",
       "taxMethod": "prime-cost",
       "taxRate": "",
-      "taxLife": "5",
+      "taxLife": "",
       "taxInitialAllowance": "",
       "disposed": false,
       "disposalDate": "",
@@ -2418,7 +2418,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0087",
       "tag": "AUS155-0025",
-      "category": "Asset WIP",
+      "category": "150120-Asset WIP",
       "description": "Back Office FY25",
       "location": "Singapore-AUS155",
       "department": "IT - Development",
@@ -2431,12 +2431,12 @@ window.AUS155 = {
       "otherCost": "",
       "acctMethod": "straight-line",
       "usefulLife": 5,
-      "residualValue": "0",
+      "residualValue": "510767.62",
       "acctRate": "",
       "taxCostOverride": "",
       "taxMethod": "prime-cost",
       "taxRate": "",
-      "taxLife": "5",
+      "taxLife": "",
       "taxInitialAllowance": "",
       "disposed": false,
       "disposalDate": "",
@@ -2446,7 +2446,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0088",
       "tag": "AUS155-0027",
-      "category": "Asset WIP",
+      "category": "150120-Asset WIP",
       "description": "Client - Data Onboarding FY25",
       "location": "Singapore-AUS155",
       "department": "IT - Development",
@@ -2459,12 +2459,12 @@ window.AUS155 = {
       "otherCost": "",
       "acctMethod": "straight-line",
       "usefulLife": 5,
-      "residualValue": "0",
+      "residualValue": "269658.36",
       "acctRate": "",
       "taxCostOverride": "",
       "taxMethod": "prime-cost",
       "taxRate": "",
-      "taxLife": "5",
+      "taxLife": "",
       "taxInitialAllowance": "",
       "disposed": false,
       "disposalDate": "",
@@ -2474,7 +2474,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0089",
       "tag": "AUS155-0028",
-      "category": "Asset WIP",
+      "category": "150120-Asset WIP",
       "description": "Lagom FY25",
       "location": "Singapore-AUS155",
       "department": "IT - Development",
@@ -2487,12 +2487,12 @@ window.AUS155 = {
       "otherCost": "",
       "acctMethod": "straight-line",
       "usefulLife": 5,
-      "residualValue": "0",
+      "residualValue": "308561.38",
       "acctRate": "",
       "taxCostOverride": "",
       "taxMethod": "prime-cost",
       "taxRate": "",
-      "taxLife": "5",
+      "taxLife": "",
       "taxInitialAllowance": "",
       "disposed": false,
       "disposalDate": "",
@@ -2502,7 +2502,7 @@ window.AUS155 = {
     {
       "id": "AUS155-0090",
       "tag": "AUS155-0029",
-      "category": "Asset WIP",
+      "category": "150120-Asset WIP",
       "description": "Pay V2 FY25 SGD",
       "location": "Singapore-AUS155",
       "department": "IT - Development",
@@ -2515,12 +2515,12 @@ window.AUS155 = {
       "otherCost": "",
       "acctMethod": "straight-line",
       "usefulLife": 5,
-      "residualValue": "0",
+      "residualValue": "13434.13",
       "acctRate": "",
       "taxCostOverride": "",
       "taxMethod": "prime-cost",
       "taxRate": "",
-      "taxLife": "5",
+      "taxLife": "",
       "taxInitialAllowance": "",
       "disposed": false,
       "disposalDate": "",

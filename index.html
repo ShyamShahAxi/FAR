@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fixed Asset Register</title>
   <meta name="description" content="Fixed Asset Register with separate accounting and tax depreciation registers. Runs entirely in your browser." />
-  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
   <header class="app-header">
     <div>
       <h1>Fixed Asset Register</h1>
-      <div class="sub">Accounting &amp; tax depreciation registers · runs entirely in your browser</div>
+      <div class="sub">Accounting &amp; tax depreciation registers &middot; runs entirely in your browser</div>
     </div>
     <div class="company">
       <div id="company-name">Company</div>
@@ -45,7 +45,7 @@
         <div class="card">
           <h3 style="margin-top:0">Current financial year</h3>
           <div id="fy-summary"></div>
-          <p class="legend">The temporary difference (NBV − Tax WDV) is the base for deferred-tax calculations.</p>
+          <p class="legend">The temporary difference (NBV &minus; Tax WDV) is the base for deferred-tax calculations.</p>
         </div>
       </div>
     </section>
@@ -57,12 +57,12 @@
         <div class="toolbar"><button class="primary" id="btn-add-2">+ Add Asset</button></div>
       </div>
       <div class="filters">
-        <div class="field"><label>Search</label><input type="search" id="search" placeholder="Tag, description, location…"></div>
+        <div class="field"><label>Search</label><input type="search" id="search" placeholder="Tag, description, location&hellip;"></div>
         <div class="field"><label>Status</label>
           <select id="filter-status"><option value="">All</option><option value="active">Active</option><option value="disposed">Disposed</option></select></div>
         <div class="field"><label>&nbsp;</label><button id="assets-expand">Expand all</button></div>
       </div>
-      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Assets are grouped by category — each row shows the category summary. Click a category to drop down into its individual assets.</p></div>
+      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Assets are grouped by category &mdash; each row shows the category summary. Click a category to drop down into its individual assets.</p></div>
       <div class="table-wrap" id="assets-wrap"></div>
     </section>
 
@@ -159,7 +159,7 @@
   <!-- Asset modal -->
   <div class="modal-backdrop" id="modal">
     <div class="modal">
-      <div class="modal-head"><h3 id="modal-title">Add Asset</h3><button class="ghost" id="modal-cancel">✕</button></div>
+      <div class="modal-head"><h3 id="modal-title">Add Asset</h3><button class="ghost" id="modal-cancel">&times;</button></div>
       <div class="modal-body"><form id="asset-form" onsubmit="return false"></form></div>
       <div class="modal-foot">
         <button id="modal-cancel-2" onclick="document.getElementById('modal').classList.remove('open')">Cancel</button>
@@ -169,7 +169,7 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="data-aus155.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="data-aus155.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
