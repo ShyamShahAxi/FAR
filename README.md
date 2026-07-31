@@ -35,9 +35,13 @@ The engine builds a full year-by-year schedule per asset (expand the **Schedule*
 
 1. Open the site (or `index.html` locally in a browser).
 2. Go to **Data & Settings** → set company name, currency, financial-year end and reporting date.
-3. Click **Load sample register** to explore, or **+ Add Asset** to enter your own.
+3. Click **Load Axi AUS155 (Singapore) register** to load real data, **Load generic sample** to explore, or **+ Add Asset** to enter your own.
 4. Review the **Accounting Register** and **Tax Register** tabs; export to CSV for your workpapers.
 5. Use **Backup (JSON)** regularly — data lives only in this browser.
+
+### Bundled AUS155 dataset
+
+`data-aus155.js` contains the real **AxiCorp Pte Ltd (Singapore)** accounting register as at **30 June 2025** — 90 assets across Computer Equipment, Furniture & Fittings, Leasehold Improvements, Software Development and Asset WIP, imported from the Xero asset export. Assets are held at their functional-currency cost and depreciated straight-line (Prime Cost) over their useful lives from first-use date; the tax register mirrors the Prime Cost method and lives from the matching tax export. The engine's recomputed net book value ties to the source register's closing WDV within ~0.03% (day-count rounding). Transferred-out WIP duplicate rows are excluded to avoid double counting.
 
 > **Note:** the depreciation methods are general-purpose. Confirm the rates, methods and rules against the tax legislation applicable in your jurisdiction before relying on the figures.
 
