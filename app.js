@@ -7,6 +7,7 @@
 
 const STORE_KEY = 'far.assets.v1';
 const SETTINGS_KEY = 'far.settings.v1';
+const DATA_VERSION_KEY = 'far.dataVersion'; // tracks which bundled dataset is loaded
 
 /* ---------- Settings ---------- */
 const defaultSettings = {
@@ -942,13 +943,23 @@ function clearAll() {
   toast('All assets cleared.');
 }
 
+// Copy the bundled AUS155 dataset into local storage and stamp its version.
+function applyBundledDataset() {
+  const data = window.AUS155;
+  if (!data || !Array.isArray(data.assets)) return false;
+  assets = JSON.parse(JSON.stringify(data.assets));
+  settings = Object.assign({}, defaultSettings, data.settings || {});
+  saveAssets();
+  saveSettings();
+  if (data.version) localStorage.setItem(DATA_VERSION_KEY, data.version);
+  return true;
+}
+
 function loadAUS155() {
   const data = window.AUS155;
   if (!data || !Array.isArray(data.assets)) { toast('AUS155 dataset not found.'); return; }
   if (assets.length && !confirm('Replace current data with the Axi AUS155 (Singapore) register?')) return;
-  assets = JSON.parse(JSON.stringify(data.assets));
-  if (data.settings) { settings = Object.assign({}, defaultSettings, data.settings); saveSettings(); }
-  saveAssets();
+  applyBundledDataset();
   applySettingsToUI();
   renderAll();
   activateTab('acct');
@@ -1070,13 +1081,15 @@ function wire() {
 
 document.addEventListener('DOMContentLoaded', () => {
   wire();
-  // First visit (no saved data yet): seed the AUS155 register so the app
-  // isn't empty. Existing saved data is never overwritten.
-  if (!assets.length && window.AUS155 && Array.isArray(window.AUS155.assets)) {
-    assets = JSON.parse(JSON.stringify(window.AUS155.assets));
-    settings = Object.assign({}, defaultSettings, window.AUS155.settings || {});
-    saveAssets();
-    saveSettings();
+  // Auto-load the bundled dataset on first visit, and again automatically
+  // whenever it has been updated to a newer version — so a refresh always
+  // shows the latest published data without needing to click "Load".
+  const data = window.AUS155;
+  const bundledVer = data && data.version;
+  const storedVer = localStorage.getItem(DATA_VERSION_KEY);
+  if (data && Array.isArray(data.assets) &&
+      (!assets.length || (bundledVer && bundledVer !== storedVer))) {
+    applyBundledDataset();
   }
   applySettingsToUI();
   activateTab('dashboard');
