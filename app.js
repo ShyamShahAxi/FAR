@@ -74,8 +74,7 @@ function fyStartFor(fyEnd) {
   return addDays(new Date(fyEnd.getFullYear() - 1, settings.fyEndMonth - 1, settings.fyEndDay), 1);
 }
 function fyLabel(fyEnd) {
-  const start = fyStartFor(fyEnd);
-  return 'FY' + start.getFullYear() + '/' + String(fyEnd.getFullYear()).slice(-2);
+  return 'FY' + String(fyEnd.getFullYear()).slice(-2);
 }
 
 /* Total capitalised accounting cost */
