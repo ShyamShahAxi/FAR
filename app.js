@@ -387,13 +387,17 @@ function renderAssets() {
   let tCost = 0, tAcc = 0, tNbv = 0, bodies = '';
   cats.forEach(cat => {
     const items = groups[cat].slice().sort((a, b) => (a.tag || '').localeCompare(b.tag || ''));
-    let cCost = 0, cAcc = 0, cNbv = 0, disposed = 0;
-    const detail = items.map(a => {
+    let cCost = 0, cAcc = 0, cNbv = 0, disposed = 0, hidden = 0;
+    const detailRows = [];
+    items.forEach(a => {
       const acct = positionAt(a, 'acct');
       const disp = isDisposed(a);
       if (disp) disposed++;
       cCost += acctCost(a); cAcc += acct.accumulated; cNbv += acct.nbv;
-      return `<tr class="asset-row">
+      // Fully depreciated & still held (nil NBV, not disposed) — hide unless toggled on.
+      const nil = Math.abs(acct.nbv) < 0.005 && !disp;
+      if (nil && !showFullyDepreciated) { hidden++; return; }
+      detailRows.push(`<tr class="asset-row">
         <td class="asset-name">
           <strong>${esc(a.tag || a.id)}</strong> ${esc(a.description || '')}
           <div class="hint-text">${esc(a.location || '')}${a.department ? ' · ' + esc(a.department) : ''}</div>
@@ -407,8 +411,10 @@ function renderAssets() {
           <button class="sm" onclick="openAsset('${a.id}')">Edit</button>
           <button class="sm danger" onclick="deleteAsset('${a.id}')">Del</button>
         </td>
-      </tr>`;
-    }).join('');
+      </tr>`);
+    });
+    if (hidden) detailRows.push(`<tr class="asset-row hint"><td colspan="7" class="hint-text" style="padding-left:28px">${hidden} fully-depreciated asset${hidden > 1 ? 's' : ''} hidden &middot; tick &ldquo;Show fully-depreciated&rdquo; to view.</td></tr>`);
+    const detail = detailRows.join('');
 
     tCost += cCost; tAcc += cAcc; tNbv += cNbv;
     const key = 'assets::' + cat;
@@ -440,6 +446,8 @@ function renderAssets() {
   </table>`;
   $('#assets-count').textContent = `${list.length} of ${assets.length} assets · ${cats.length} categories`;
   updateAssetsExpandButton();
+  const chk = $('#assets-showall');
+  if (chk) chk.checked = showFullyDepreciated;
 }
 
 function toggleAssetsCat(key) {
@@ -465,6 +473,7 @@ function updateAssetsExpandButton() {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function fmtDate(d) { return d ? `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}` : ''; }
 const expandedCats = new Set();       // keys: "acct::<category>" / "tax::<category>"
+let showFullyDepreciated = false;     // when false, hide nil / fully-depreciated dormant assets
 
 /* Movement of one asset within the reporting financial year */
 function assetMovement(a, kind) {
@@ -512,11 +521,16 @@ function renderRegister(kind) {
 
   cats.forEach(cat => {
     const items = groups[cat];
-    let cO = 0, cA = 0, cC = 0, cD = 0, cCl = 0;
-    const detail = items.map(a => {
+    let cO = 0, cA = 0, cC = 0, cD = 0, cCl = 0, hidden = 0;
+    const detailRows = [];
+    items.forEach(a => {
       const m = assetMovement(a, kind);
       cO += m.opening; cA += m.addition; cC += m.charge; cD += m.disposal; cCl += m.closing;
-      return `<tr class="asset-row">
+      // Dormant & nil: no opening, no movement, no closing — hide unless toggled on.
+      const dormantNil = Math.abs(m.opening) < 0.005 && Math.abs(m.addition) < 0.005 &&
+        Math.abs(m.charge) < 0.005 && Math.abs(m.disposal) < 0.005 && Math.abs(m.closing) < 0.005;
+      if (dormantNil && !showFullyDepreciated) { hidden++; return; }
+      detailRows.push(`<tr class="asset-row">
         <td class="asset-name">
           <strong>${esc(a.tag || a.id)}</strong> ${esc(a.description || '')}
           <div class="hint-text">${methodLabelFor(a, kind)}${a.department ? ' · ' + esc(a.department) : ''}</div>
@@ -527,8 +541,10 @@ function renderRegister(kind) {
         <td class="num">${movCell(m.charge)}</td>
         <td class="num">${movCell(m.disposal)}</td>
         <td class="num">${fmt(m.closing)}</td>
-      </tr>`;
-    }).join('');
+      </tr>`);
+    });
+    if (hidden) detailRows.push(`<tr class="asset-row hint"><td colspan="6" class="hint-text" style="padding-left:28px">${hidden} fully-depreciated asset${hidden > 1 ? 's' : ''} hidden &middot; tick &ldquo;Show fully-depreciated&rdquo; to view.</td></tr>`);
+    const detail = detailRows.join('');
 
     tO += cO; tA += cA; tC += cC; tD += cD; tCl += cCl;
     const key = kind + '::' + cat;
@@ -571,10 +587,21 @@ function renderRegister(kind) {
     fyLabel(fyEnd) + ' · ' + fmtDate(fyStart) + ' – ' + fmtDate(fyEnd);
   populateFYSelect(kind);
   updateExpandButton(kind);
+  const chk = $('#' + kind + '-showall');
+  if (chk) chk.checked = showFullyDepreciated;
 }
 
 function renderAcctRegister() { renderRegister('acct'); }
 function renderTaxRegister() { renderRegister('tax'); }
+
+/* Show/hide fully-depreciated (nil) assets across all grouped views */
+function setShowAll(v) {
+  showFullyDepreciated = v;
+  ['acct-showall', 'tax-showall', 'assets-showall'].forEach(id => {
+    const el = $('#' + id); if (el) el.checked = v;
+  });
+  renderAll();
+}
 
 /* Financial years spanned by the register (for the FY switcher) */
 function availableFYs() {
@@ -1021,6 +1048,10 @@ function wire() {
   $('#tax-fy-select').addEventListener('change', e => onFYChange(e.target.value));
   $('#acct-expand').addEventListener('click', () => toggleAllCats('acct'));
   $('#tax-expand').addEventListener('click', () => toggleAllCats('tax'));
+  ['acct-showall', 'tax-showall', 'assets-showall'].forEach(id => {
+    const el = $('#' + id);
+    if (el) el.addEventListener('change', e => setShowAll(e.target.checked));
+  });
   ['acct', 'tax'].forEach(kind => {
     $('#' + kind + '-wrap').addEventListener('click', e => {
       const row = e.target.closest('tr.cat-row');
