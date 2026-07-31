@@ -361,11 +361,10 @@ function renderDashboard() {
     </table>`;
 }
 
-/* ----- Assets list ----- */
+/* ----- Assets list (grouped by category, collapsible) ----- */
 function filteredAssets() {
   const q = filterState.q.toLowerCase();
   return assets.filter(a => {
-    if (filterState.category && a.category !== filterState.category) return false;
     if (filterState.status === 'active' && isDisposed(a)) return false;
     if (filterState.status === 'disposed' && !isDisposed(a)) return false;
     if (q) {
@@ -378,35 +377,87 @@ function filteredAssets() {
 }
 
 function renderAssets() {
-  // filters
-  const catSel = $('#filter-category');
-  const cur = filterState.category;
-  catSel.innerHTML = '<option value="">All categories</option>' +
-    categories().map(c => `<option ${c === cur ? 'selected' : ''}>${esc(c)}</option>`).join('');
-
+  const searching = !!filterState.q;
   const list = filteredAssets();
-  const rows = list.map(a => {
-    const acct = positionAt(a, 'acct');
-    const disp = isDisposed(a);
-    return `<tr>
-      <td><strong>${esc(a.tag || a.id)}</strong></td>
-      <td>${esc(a.description || '')}<div class="hint-text">${esc(a.category || '')}</div></td>
-      <td>${esc(a.location || '')}${a.department ? '<div class="hint-text">' + esc(a.department) + '</div>' : ''}</td>
-      <td class="num">${esc(a.acquisitionDate || '')}</td>
-      <td class="num">${fmt(acctCost(a))}</td>
-      <td class="num">${fmt(acct.accumulated)}</td>
-      <td class="num">${fmt(acct.nbv)}</td>
-      <td>${disp ? '<span class="pill red">Disposed</span>' : '<span class="pill green">Active</span>'}</td>
-      <td>
-        <button class="sm" onclick="openAsset('${a.id}')">Edit</button>
-        <button class="sm danger" onclick="deleteAsset('${a.id}')">Del</button>
-      </td>
-    </tr>`;
-  }).join('');
+  const groups = {};
+  list.forEach(a => { const c = a.category || 'Uncategorised'; (groups[c] = groups[c] || []).push(a); });
+  const cats = Object.keys(groups).sort();
 
-  $('#assets-body').innerHTML = list.length ? rows :
-    '<tr class="empty-row"><td colspan="9">No assets match. Click “Add Asset” to create one, or load sample data from the Data tab.</td></tr>';
-  $('#assets-count').textContent = `${list.length} of ${assets.length} assets`;
+  let tCost = 0, tAcc = 0, tNbv = 0, bodies = '';
+  cats.forEach(cat => {
+    const items = groups[cat].slice().sort((a, b) => (a.tag || '').localeCompare(b.tag || ''));
+    let cCost = 0, cAcc = 0, cNbv = 0, disposed = 0;
+    const detail = items.map(a => {
+      const acct = positionAt(a, 'acct');
+      const disp = isDisposed(a);
+      if (disp) disposed++;
+      cCost += acctCost(a); cAcc += acct.accumulated; cNbv += acct.nbv;
+      return `<tr class="asset-row">
+        <td class="asset-name">
+          <strong>${esc(a.tag || a.id)}</strong> ${esc(a.description || '')}
+          <div class="hint-text">${esc(a.location || '')}${a.department ? ' · ' + esc(a.department) : ''}</div>
+        </td>
+        <td class="num">${esc(a.acquisitionDate || '')}</td>
+        <td class="num">${fmt(acctCost(a))}</td>
+        <td class="num">${fmt(acct.accumulated)}</td>
+        <td class="num">${fmt(acct.nbv)}</td>
+        <td>${disp ? '<span class="pill red">Disposed</span>' : '<span class="pill green">Active</span>'}</td>
+        <td>
+          <button class="sm" onclick="openAsset('${a.id}')">Edit</button>
+          <button class="sm danger" onclick="deleteAsset('${a.id}')">Del</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    tCost += cCost; tAcc += cAcc; tNbv += cNbv;
+    const key = 'assets::' + cat;
+    const open = expandedCats.has(key) || searching;   // auto-expand while searching
+    bodies += `<tbody class="cat-group">
+      <tr class="cat-row${open ? ' open' : ''}" data-key="${esc(key)}">
+        <td class="cat-name"><span class="chev">▸</span> ${esc(cat)} <span class="count">${items.length}</span>${disposed ? ' <span class="pill red" style="font-size:.65rem">' + disposed + ' disp.</span>' : ''}</td>
+        <td></td>
+        <td class="num">${fmt(cCost)}</td>
+        <td class="num">${fmt(cAcc)}</td>
+        <td class="num">${fmt(cNbv)}</td>
+        <td></td><td></td>
+      </tr>
+      ${open ? detail : ''}
+    </tbody>`;
+  });
+
+  const empty = `<tbody><tr class="empty-row"><td colspan="7">No assets match. Click “Add Asset” to create one, or load a dataset from the Data tab.</td></tr></tbody>`;
+  $('#assets-wrap').innerHTML = `<table class="reg-table">
+    <thead><tr>
+      <th>Category / Asset</th><th class="num">Acquired</th><th class="num">Cost</th>
+      <th class="num">Accum. Dep</th><th class="num">NBV</th><th>Status</th><th>Actions</th>
+    </tr></thead>
+    ${cats.length ? bodies : empty}
+    <tfoot><tr>
+      <td>Totals</td><td></td><td class="num">${fmt(tCost)}</td>
+      <td class="num">${fmt(tAcc)}</td><td class="num">${fmt(tNbv)}</td><td></td><td></td>
+    </tr></tfoot>
+  </table>`;
+  $('#assets-count').textContent = `${list.length} of ${assets.length} assets · ${cats.length} categories`;
+  updateAssetsExpandButton();
+}
+
+function toggleAssetsCat(key) {
+  if (expandedCats.has(key)) expandedCats.delete(key); else expandedCats.add(key);
+  renderAssets();
+}
+function toggleAllAssetsCats() {
+  const cats = Array.from(new Set(filteredAssets().map(a => a.category || 'Uncategorised')));
+  const keys = cats.map(c => 'assets::' + c);
+  const allOpen = keys.length && keys.every(k => expandedCats.has(k));
+  keys.forEach(k => { if (allOpen) expandedCats.delete(k); else expandedCats.add(k); });
+  renderAssets();
+}
+function updateAssetsExpandButton() {
+  const btn = $('#assets-expand');
+  if (!btn) return;
+  const cats = Array.from(new Set(filteredAssets().map(a => a.category || 'Uncategorised')));
+  const allOpen = cats.length && cats.every(c => expandedCats.has('assets::' + c));
+  btn.textContent = allOpen ? 'Collapse all' : 'Expand all';
 }
 
 /* ----- Registers (grouped by category, collapsible) ----- */
@@ -951,8 +1002,12 @@ function wire() {
   $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
   $('#search').addEventListener('input', e => { filterState.q = e.target.value; renderAssets(); });
-  $('#filter-category').addEventListener('change', e => { filterState.category = e.target.value; renderAssets(); });
   $('#filter-status').addEventListener('change', e => { filterState.status = e.target.value; renderAssets(); });
+  $('#assets-expand').addEventListener('click', toggleAllAssetsCats);
+  $('#assets-wrap').addEventListener('click', e => {
+    const row = e.target.closest('tr.cat-row');
+    if (row && row.dataset.key) toggleAssetsCat(row.dataset.key);
+  });
 
   $('#btn-export-json').addEventListener('click', exportJSON);
   $('#btn-export-assets').addEventListener('click', () => exportCSV('assets'));

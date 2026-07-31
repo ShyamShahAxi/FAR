@@ -58,19 +58,12 @@
       </div>
       <div class="filters">
         <div class="field"><label>Search</label><input type="search" id="search" placeholder="Tag, description, location…"></div>
-        <div class="field"><label>Category</label><select id="filter-category"><option value="">All categories</option></select></div>
         <div class="field"><label>Status</label>
           <select id="filter-status"><option value="">All</option><option value="active">Active</option><option value="disposed">Disposed</option></select></div>
+        <div class="field"><label>&nbsp;</label><button id="assets-expand">Expand all</button></div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>Tag</th><th>Description</th><th>Location</th><th class="num">Acquired</th>
-            <th class="num">Cost</th><th class="num">Accum. Dep</th><th class="num">NBV</th><th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="assets-body"></tbody>
-        </table>
-      </div>
+      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Assets are grouped by category — each row shows the category summary. Click a category to drop down into its individual assets.</p></div>
+      <div class="table-wrap" id="assets-wrap"></div>
     </section>
 
     <!-- Accounting register -->
