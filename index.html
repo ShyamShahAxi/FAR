@@ -4,85 +4,186 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fixed Asset Register</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f5f7fb;
-      color: #1f2937;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 40px 20px 60px;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    }
-    h1, h2 {
-      color: #0f172a;
-    }
-    ul { line-height: 1.7; }
-    .badge {
-      display: inline-block;
-      background: #2563eb;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      margin-bottom: 12px;
-    }
-  </style>
+  <meta name="description" content="Fixed Asset Register with separate accounting and tax depreciation registers. Runs entirely in your browser." />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <span class="badge">Fixed Asset Register</span>
-      <h1>Fixed Asset Register Outline</h1>
-      <p>This page summarizes a practical structure for an asset register covering both accounting and tax requirements.</p>
+  <header class="app-header">
+    <div>
+      <h1>Fixed Asset Register</h1>
+      <div class="sub">Accounting &amp; tax depreciation registers · runs entirely in your browser</div>
+    </div>
+    <div class="company">
+      <div id="company-name">Company</div>
+      <div class="sub" id="header-fy"></div>
+    </div>
+  </header>
 
-      <h2>1. Asset Master Information</h2>
-      <ul>
-        <li>Asset ID / tag number</li>
-        <li>Description and category</li>
-        <li>Location, department, and custodian</li>
-        <li>Acquisition date and useful life</li>
-      </ul>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="assets">Assets</button>
+    <button class="tab" data-tab="acct">Accounting Register</button>
+    <button class="tab" data-tab="tax">Tax Register</button>
+    <button class="tab" data-tab="disposals">Disposals</button>
+    <button class="tab" data-tab="data">Data &amp; Settings</button>
+  </nav>
 
-      <h2>2. Acquisition Details</h2>
-      <ul>
-        <li>Supplier and invoice reference</li>
-        <li>Purchase cost and installation cost</li>
-        <li>Customs, duties, and capitalized costs</li>
-      </ul>
+  <main class="container">
 
-      <h2>3. Accounting Register</h2>
-      <ul>
-        <li>Opening carrying amount</li>
-        <li>Additions and disposals</li>
-        <li>Depreciation and accumulated depreciation</li>
-        <li>Closing carrying amount</li>
-      </ul>
+    <!-- Dashboard -->
+    <section class="view active" id="view-dashboard">
+      <div class="view-head">
+        <div><h2>Register summary</h2><div class="desc">Position as at the reporting date. Change it in Data &amp; Settings.</div></div>
+        <div class="toolbar"><button class="primary" id="btn-add">+ Add Asset</button></div>
+      </div>
+      <div class="kpi-grid" id="kpi-row"></div>
+      <div class="two-col">
+        <div class="card">
+          <h3 style="margin-top:0">Gross cost by category</h3>
+          <div id="cat-breakdown"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">Current financial year</h3>
+          <div id="fy-summary"></div>
+          <p class="legend">The temporary difference (NBV − Tax WDV) is the base for deferred-tax calculations.</p>
+        </div>
+      </div>
+    </section>
 
-      <h2>4. Tax Register</h2>
-      <ul>
-        <li>Tax base cost</li>
-        <li>Capital allowances and depreciation</li>
-        <li>Balancing adjustments on disposal</li>
-        <li>Closing tax written-down value</li>
-      </ul>
+    <!-- Assets -->
+    <section class="view" id="view-assets">
+      <div class="view-head">
+        <div><h2>Asset master &amp; register</h2><div class="desc" id="assets-count"></div></div>
+        <div class="toolbar"><button class="primary" id="btn-add-2">+ Add Asset</button></div>
+      </div>
+      <div class="filters">
+        <div class="field"><label>Search</label><input type="search" id="search" placeholder="Tag, description, location…"></div>
+        <div class="field"><label>Category</label><select id="filter-category"><option value="">All categories</option></select></div>
+        <div class="field"><label>Status</label>
+          <select id="filter-status"><option value="">All</option><option value="active">Active</option><option value="disposed">Disposed</option></select></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Tag</th><th>Description</th><th>Location</th><th class="num">Acquired</th>
+            <th class="num">Cost</th><th class="num">Accum. Dep</th><th class="num">NBV</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="assets-body"></tbody>
+        </table>
+      </div>
+    </section>
 
-      <h2>5. Controls and Reconciliation</h2>
-      <ul>
-        <li>Physical verification</li>
-        <li>Supporting documents</li>
-        <li>Reconciliation to the general ledger</li>
-        <li>Audit trail and approvals</li>
-      </ul>
+    <!-- Accounting register -->
+    <section class="view" id="view-acct">
+      <div class="view-head">
+        <div><h2>Accounting depreciation register</h2><div class="desc" id="acct-fy-label"></div></div>
+        <div class="toolbar"><button id="exp-acct">Export CSV</button></div>
+      </div>
+      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Movement schedule for the reporting financial year: opening carrying amount, additions, depreciation charge, disposals and closing net book value. Expand any row for the full year-by-year schedule.</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Asset</th><th>Method</th><th class="num">Opening NBV</th><th class="num">Additions</th>
+            <th class="num">Depreciation</th><th class="num">Disposals</th><th class="num">Closing NBV</th><th class="num">Accum. Dep</th><th>Schedule</th>
+          </tr></thead>
+          <tbody id="acct-body"></tbody>
+          <tfoot id="acct-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tax register -->
+    <section class="view" id="view-tax">
+      <div class="view-head">
+        <div><h2>Tax depreciation register (capital allowances)</h2><div class="desc" id="tax-fy-label"></div></div>
+        <div class="toolbar"><button id="exp-tax">Export CSV</button></div>
+      </div>
+      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Tax written-down values using capital-allowance rates (diminishing value or prime cost), independent of the accounting register. Supports an optional first-year initial allowance and a separate tax cost base.</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Asset</th><th>Method</th><th class="num">Tax Cost</th><th class="num">Opening TWDV</th><th class="num">Additions</th>
+            <th class="num">Tax Depreciation</th><th class="num">Disposals</th><th class="num">Closing TWDV</th><th>Schedule</th>
+          </tr></thead>
+          <tbody id="tax-body"></tbody>
+          <tfoot id="tax-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- Disposals -->
+    <section class="view" id="view-disposals">
+      <div class="view-head">
+        <div><h2>Disposals &amp; balancing adjustments</h2><div class="desc">Accounting profit/loss and tax balancing charge/allowance on disposal.</div></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Asset</th><th class="num">Disposal Date</th><th class="num">Proceeds</th><th class="num">Acct NBV</th>
+            <th class="num">Profit/(Loss)</th><th class="num">Tax WDV</th><th class="num">Balancing Adj.</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="disposals-body"></tbody>
+          <tfoot id="disposals-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- Data & settings -->
+    <section class="view" id="view-data">
+      <div class="view-head"><div><h2>Data &amp; settings</h2><div class="desc">Everything is stored locally in this browser (localStorage). Export regularly to back up.</div></div></div>
+      <div class="two-col">
+        <div class="card">
+          <h3 style="margin-top:0">Company &amp; reporting</h3>
+          <div class="form-grid">
+            <div class="field full"><label>Company name</label><input id="s-companyName"></div>
+            <div class="field"><label>Currency symbol</label><input id="s-currency" maxlength="3"></div>
+            <div class="field"><label>Reporting date</label><input id="s-reportingDate" type="date"></div>
+            <div class="field"><label>Financial year-end month</label>
+              <select id="s-fyEndMonth">
+                <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+              </select></div>
+            <div class="field"><label>Financial year-end day</label><input id="s-fyEndDay" type="number" min="1" max="31"></div>
+          </div>
+          <div style="margin-top:16px"><button class="primary" id="btn-save-settings">Save settings</button></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">Import / export / backup</h3>
+          <p class="legend">Back up the full register (assets + settings) as JSON, or export any register as CSV for Excel.</p>
+          <div class="toolbar" style="margin-bottom:12px">
+            <button class="primary" id="btn-export-json">Backup (JSON)</button>
+            <button id="btn-import">Import (JSON)</button>
+            <input type="file" id="import-file" accept="application/json,.json" style="display:none">
+          </div>
+          <div class="toolbar" style="margin-bottom:16px">
+            <button id="btn-export-assets">Export assets CSV</button>
+          </div>
+          <h3>Sample &amp; reset</h3>
+          <div class="toolbar">
+            <button id="btn-sample">Load sample register</button>
+            <button class="danger" id="btn-clear">Clear all data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Asset modal -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <div class="modal-head"><h3 id="modal-title">Add Asset</h3><button class="ghost" id="modal-cancel">✕</button></div>
+      <div class="modal-body"><form id="asset-form" onsubmit="return false"></form></div>
+      <div class="modal-foot">
+        <button id="modal-cancel-2" onclick="document.getElementById('modal').classList.remove('open')">Cancel</button>
+        <button class="primary" id="modal-save">Save asset</button>
+      </div>
     </div>
   </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
 </body>
 </html>
