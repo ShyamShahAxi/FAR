@@ -162,9 +162,11 @@
           </div>
           <h3>Sample &amp; reset</h3>
           <div class="toolbar">
-            <button id="btn-sample">Load sample register</button>
+            <button id="btn-aus155">Load Axi AUS155 (Singapore) register</button>
+            <button id="btn-sample">Load generic sample</button>
             <button class="danger" id="btn-clear">Clear all data</button>
           </div>
+          <p class="legend">The AUS155 dataset is the real Singapore accounting register as at 30 Jun 2025 (90 assets), imported from the Xero asset export. Recomputed figures tie to the source register within ~0.03%.</p>
         </div>
       </div>
     </section>
@@ -184,6 +186,7 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <script src="data-aus155.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

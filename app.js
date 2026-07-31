@@ -768,6 +768,19 @@ function clearAll() {
   toast('All assets cleared.');
 }
 
+function loadAUS155() {
+  const data = window.AUS155;
+  if (!data || !Array.isArray(data.assets)) { toast('AUS155 dataset not found.'); return; }
+  if (assets.length && !confirm('Replace current data with the Axi AUS155 (Singapore) register?')) return;
+  assets = JSON.parse(JSON.stringify(data.assets));
+  if (data.settings) { settings = Object.assign({}, defaultSettings, data.settings); saveSettings(); }
+  saveAssets();
+  applySettingsToUI();
+  renderAll();
+  activateTab('acct');
+  toast('AUS155 register loaded (' + assets.length + ' assets).');
+}
+
 function sampleData() {
   return [
     { id: uid(), tag: 'IT-0001', category: 'IT Equipment', description: 'Dell Latitude laptop fleet (x10)', location: 'Sydney HQ', department: 'Technology', custodian: 'IT Asset Team', supplier: 'Dell', invoice: 'INV-88421', acquisitionDate: '2023-08-15', purchaseCost: '24000', installationCost: '600', otherCost: '', acctMethod: 'straight-line', usefulLife: 3, residualValue: '0', acctRate: '', taxCostOverride: '', taxMethod: 'diminishing-value', taxRate: 40, taxLife: '', taxInitialAllowance: '', disposed: false, disposalDate: '', disposalProceeds: '', notes: '' },
@@ -854,6 +867,7 @@ function wire() {
   $('#btn-import').addEventListener('click', () => $('#import-file').click());
   $('#import-file').addEventListener('change', e => { if (e.target.files[0]) importJSON(e.target.files[0]); e.target.value = ''; });
   $('#btn-sample').addEventListener('click', loadSample);
+  $('#btn-aus155').addEventListener('click', loadAUS155);
   $('#btn-clear').addEventListener('click', clearAll);
   $('#btn-save-settings').addEventListener('click', saveSettingsFromUI);
 
