@@ -377,6 +377,7 @@ function filteredAssets() {
 }
 
 function renderAssets() {
+  if (!$('#assets-wrap')) return; // stale/cached HTML guard
   const searching = !!filterState.q;
   const list = filteredAssets();
   const groups = {};
@@ -496,6 +497,7 @@ function movCell(v) { return v ? '(' + fmt(v) + ')' : '–'; }
 
 function renderRegister(kind) {
   const wrap = $('#' + kind + '-wrap');
+  if (!wrap) return; // stale/cached HTML guard
   const fyEnd = fyEndFor(reportingDate());
   const fyStart = fyStartFor(fyEnd);
   const closeLbl = kind === 'tax' ? 'TWDV' : 'NBV';
