@@ -409,80 +409,174 @@ function renderAssets() {
   $('#assets-count').textContent = `${list.length} of ${assets.length} assets`;
 }
 
-/* ----- Accounting register ----- */
-function renderAcctRegister() {
-  const list = activeAssets().slice().sort((a, b) => (a.tag || '').localeCompare(b.tag || ''));
-  let tO = 0, tA = 0, tC = 0, tD = 0, tCl = 0, tAcc = 0;
+/* ----- Registers (grouped by category, collapsible) ----- */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function fmtDate(d) { return d ? `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}` : ''; }
+const expandedCats = new Set();       // keys: "acct::<category>" / "tax::<category>"
 
-  const rows = list.map(a => {
-    const p = positionAt(a, 'acct');
-    const opening = p.openingThisFY;
-    const addition = sameFYAcquisition(a) ? acctCost(a) : 0;
-    const charge = p.chargeThisFY;
-    const disposal = p.disposalRemoval;
-    const closing = p.disposedInView ? 0 : p.nbv;
-    tO += opening - addition; tA += addition; tC += charge; tD += disposal; tCl += closing; tAcc += p.accumulated;
-    const methodLabel = a.acctMethod === 'reducing-balance'
-      ? `Reducing ${pct(a.acctRate)}` : `Straight-line ${num(a.usefulLife)}y`;
-    return `<tr>
-      <td><strong>${esc(a.tag || a.id)}</strong><div class="hint-text">${esc(a.description || '')}</div></td>
-      <td>${methodLabel}</td>
-      <td class="num">${fmt(opening - addition)}</td>
-      <td class="num">${addition ? fmt(addition) : '–'}</td>
-      <td class="num">${fmt(charge)}</td>
-      <td class="num">${disposal ? '(' + fmt(disposal) + ')' : '–'}</td>
-      <td class="num">${fmt(closing)}</td>
-      <td class="num">${fmt(p.accumulated)}</td>
-      <td><details class="sched"><summary>Schedule</summary>${scheduleTable(p.sched, 'acct')}</details></td>
-    </tr>`;
-  }).join('');
-
-  $('#acct-body').innerHTML = list.length ? rows :
-    '<tr class="empty-row"><td colspan="9">No assets to report.</td></tr>';
-  $('#acct-foot').innerHTML = `<tr>
-      <td colspan="2">Totals — ${fyLabel(fyEndFor(reportingDate()))}</td>
-      <td class="num">${fmt(tO)}</td><td class="num">${fmt(tA)}</td>
-      <td class="num">${fmt(tC)}</td><td class="num">${tD ? '(' + fmt(tD) + ')' : '–'}</td>
-      <td class="num">${fmt(tCl)}</td><td class="num">${fmt(tAcc)}</td><td></td></tr>`;
-  $('#acct-fy-label').textContent = fyLabel(fyEndFor(reportingDate())) + ' · as at ' + toISO(reportingDate());
+/* Movement of one asset within the reporting financial year */
+function assetMovement(a, kind) {
+  const p = positionAt(a, kind);
+  const cost = kind === 'acct' ? acctCost(a) : taxCost(a);
+  const addition = sameFYAcquisition(a) ? cost : 0;
+  return {
+    opening: p.openingThisFY - addition,
+    addition,
+    charge: p.chargeThisFY,
+    disposal: p.disposalRemoval,
+    closing: p.disposedInView ? 0 : p.nbv,
+    accumulated: p.accumulated,
+    sched: p.sched,
+  };
 }
 
-/* ----- Tax register ----- */
-function renderTaxRegister() {
+function methodLabelFor(a, kind) {
+  if (kind === 'acct') {
+    return a.acctMethod === 'reducing-balance'
+      ? `Reducing balance ${pct(a.acctRate)}` : `Straight-line ${num(a.usefulLife)}y`;
+  }
+  const base = a.taxMethod === 'diminishing-value'
+    ? `Diminishing value ${pct(a.taxRate)}`
+    : (a.taxRate ? `Prime cost ${pct(a.taxRate)}` : `Prime cost ${num(a.taxLife)}y`);
+  return base + (num(a.taxInitialAllowance) ? ` + IA ${pct(a.taxInitialAllowance)}` : '');
+}
+
+function movCell(v) { return v ? '(' + fmt(v) + ')' : '–'; }
+
+function renderRegister(kind) {
+  const wrap = $('#' + kind + '-wrap');
+  const fyEnd = fyEndFor(reportingDate());
+  const fyStart = fyStartFor(fyEnd);
+  const closeLbl = kind === 'tax' ? 'TWDV' : 'NBV';
+
   const list = activeAssets().slice().sort((a, b) => (a.tag || '').localeCompare(b.tag || ''));
+  const groups = {};
+  list.forEach(a => { const c = a.category || 'Uncategorised'; (groups[c] = groups[c] || []).push(a); });
+  const cats = Object.keys(groups).sort();
+
   let tO = 0, tA = 0, tC = 0, tD = 0, tCl = 0;
+  let bodies = '';
 
-  const rows = list.map(a => {
-    const p = positionAt(a, 'tax');
-    const addition = sameFYAcquisition(a) ? taxCost(a) : 0;
-    const opening = p.openingThisFY - addition;
-    const charge = p.chargeThisFY;
-    const disposal = p.disposalRemoval;
-    const closing = p.disposedInView ? 0 : p.nbv;
-    tO += opening; tA += addition; tC += charge; tD += disposal; tCl += closing;
-    const methodLabel = a.taxMethod === 'diminishing-value'
-      ? `Diminishing ${pct(a.taxRate)}` : (a.taxRate ? `Prime cost ${pct(a.taxRate)}` : `Prime cost ${num(a.taxLife)}y`);
-    return `<tr>
-      <td><strong>${esc(a.tag || a.id)}</strong><div class="hint-text">${esc(a.description || '')}</div></td>
-      <td>${methodLabel}${num(a.taxInitialAllowance) ? ' + IA ' + pct(a.taxInitialAllowance) : ''}</td>
-      <td class="num">${fmt(taxCost(a))}</td>
-      <td class="num">${fmt(opening)}</td>
-      <td class="num">${addition ? fmt(addition) : '–'}</td>
-      <td class="num">${fmt(charge)}</td>
-      <td class="num">${disposal ? '(' + fmt(disposal) + ')' : '–'}</td>
-      <td class="num">${fmt(closing)}</td>
-      <td><details class="sched"><summary>Schedule</summary>${scheduleTable(p.sched, 'tax')}</details></td>
-    </tr>`;
+  cats.forEach(cat => {
+    const items = groups[cat];
+    let cO = 0, cA = 0, cC = 0, cD = 0, cCl = 0;
+    const detail = items.map(a => {
+      const m = assetMovement(a, kind);
+      cO += m.opening; cA += m.addition; cC += m.charge; cD += m.disposal; cCl += m.closing;
+      return `<tr class="asset-row">
+        <td class="asset-name">
+          <strong>${esc(a.tag || a.id)}</strong> ${esc(a.description || '')}
+          <div class="hint-text">${methodLabelFor(a, kind)}${a.department ? ' · ' + esc(a.department) : ''}</div>
+          <details class="sched"><summary>Schedule</summary>${scheduleTable(m.sched, kind)}</details>
+        </td>
+        <td class="num">${fmt(m.opening)}</td>
+        <td class="num">${m.addition ? fmt(m.addition) : '–'}</td>
+        <td class="num">${movCell(m.charge)}</td>
+        <td class="num">${movCell(m.disposal)}</td>
+        <td class="num">${fmt(m.closing)}</td>
+      </tr>`;
+    }).join('');
+
+    tO += cO; tA += cA; tC += cC; tD += cD; tCl += cCl;
+    const key = kind + '::' + cat;
+    const open = expandedCats.has(key);
+    bodies += `<tbody class="cat-group">
+      <tr class="cat-row${open ? ' open' : ''}" data-key="${esc(key)}">
+        <td class="cat-name"><span class="chev">▸</span> ${esc(cat)} <span class="count">${items.length}</span></td>
+        <td class="num">${fmt(cO)}</td>
+        <td class="num">${cA ? fmt(cA) : '–'}</td>
+        <td class="num">${movCell(cC)}</td>
+        <td class="num">${movCell(cD)}</td>
+        <td class="num">${fmt(cCl)}</td>
+      </tr>
+      ${open ? detail : ''}
+    </tbody>`;
+  });
+
+  const empty = `<tbody><tr class="empty-row"><td colspan="6">No assets to report.</td></tr></tbody>`;
+  wrap.innerHTML = `<table class="reg-table">
+    <thead><tr>
+      <th>Category / Asset</th>
+      <th class="num">Opening ${closeLbl}<div class="hint-th">${fmtDate(fyStart)}</div></th>
+      <th class="num">Additions</th>
+      <th class="num">Depreciation</th>
+      <th class="num">Disposals</th>
+      <th class="num">Closing ${closeLbl}<div class="hint-th">${fmtDate(fyEnd)}</div></th>
+    </tr></thead>
+    ${cats.length ? bodies : empty}
+    <tfoot><tr>
+      <td>Totals — ${fyLabel(fyEnd)}</td>
+      <td class="num">${fmt(tO)}</td>
+      <td class="num">${tA ? fmt(tA) : '–'}</td>
+      <td class="num">${movCell(tC)}</td>
+      <td class="num">${movCell(tD)}</td>
+      <td class="num">${fmt(tCl)}</td>
+    </tr></tfoot>
+  </table>`;
+
+  $('#' + kind + '-fy-label').textContent =
+    fyLabel(fyEnd) + ' · ' + fmtDate(fyStart) + ' – ' + fmtDate(fyEnd);
+  populateFYSelect(kind);
+  updateExpandButton(kind);
+}
+
+function renderAcctRegister() { renderRegister('acct'); }
+function renderTaxRegister() { renderRegister('tax'); }
+
+/* Financial years spanned by the register (for the FY switcher) */
+function availableFYs() {
+  const acqs = assets.map(a => parseDate(a.acquisitionDate)).filter(Boolean);
+  let minY, maxY;
+  if (acqs.length) {
+    minY = fyEndFor(new Date(Math.min.apply(null, acqs))).getFullYear();
+    maxY = fyEndFor(new Date(Math.max.apply(null, acqs))).getFullYear();
+  } else {
+    minY = maxY = fyEndFor(new Date()).getFullYear();
+  }
+  maxY = Math.max(maxY, fyEndFor(reportingDate()).getFullYear()) + 1; // +1 to view run-off
+  const out = [];
+  for (let y = minY; y <= maxY; y++) out.push(new Date(y, settings.fyEndMonth - 1, settings.fyEndDay));
+  return out;
+}
+
+function populateFYSelect(kind) {
+  const sel = $('#' + kind + '-fy-select');
+  if (!sel) return;
+  const current = toISO(fyEndFor(reportingDate()));
+  sel.innerHTML = availableFYs().map(d => {
+    const iso = toISO(d);
+    const start = fyStartFor(d);
+    return `<option value="${iso}"${iso === current ? ' selected' : ''}>${fyLabel(d)} (${fmtDate(start)} – ${fmtDate(d)})</option>`;
   }).join('');
+}
 
-  $('#tax-body').innerHTML = list.length ? rows :
-    '<tr class="empty-row"><td colspan="9">No assets to report.</td></tr>';
-  $('#tax-foot').innerHTML = `<tr>
-      <td colspan="3">Totals — ${fyLabel(fyEndFor(reportingDate()))}</td>
-      <td class="num">${fmt(tO)}</td><td class="num">${fmt(tA)}</td>
-      <td class="num">${fmt(tC)}</td><td class="num">${tD ? '(' + fmt(tD) + ')' : '–'}</td>
-      <td class="num">${fmt(tCl)}</td><td></td></tr>`;
-  $('#tax-fy-label').textContent = fyLabel(fyEndFor(reportingDate())) + ' · as at ' + toISO(reportingDate());
+function onFYChange(iso) {
+  settings.reportingDate = iso;   // reporting date = selected financial-year end
+  saveSettings();
+  applySettingsHeader();
+  applySettingsToUI();
+  renderAll();
+}
+
+function toggleCat(key) {
+  if (expandedCats.has(key)) expandedCats.delete(key); else expandedCats.add(key);
+  renderRegister(key.split('::')[0]);
+}
+
+function toggleAllCats(kind) {
+  const cats = Array.from(new Set(activeAssets().map(a => a.category || 'Uncategorised')));
+  const keys = cats.map(c => kind + '::' + c);
+  const allOpen = keys.every(k => expandedCats.has(k));
+  keys.forEach(k => { if (allOpen) expandedCats.delete(k); else expandedCats.add(k); });
+  renderRegister(kind);
+}
+
+function updateExpandButton(kind) {
+  const btn = $('#' + kind + '-expand');
+  if (!btn) return;
+  const cats = Array.from(new Set(activeAssets().map(a => a.category || 'Uncategorised')));
+  const allOpen = cats.length && cats.every(c => expandedCats.has(kind + '::' + c));
+  btn.textContent = allOpen ? 'Collapse all' : 'Expand all';
 }
 
 function sameFYAcquisition(a) {
@@ -864,6 +958,18 @@ function wire() {
   $('#btn-export-assets').addEventListener('click', () => exportCSV('assets'));
   $('#exp-acct').addEventListener('click', () => exportCSV('acct'));
   $('#exp-tax').addEventListener('click', () => exportCSV('tax'));
+
+  // Register FY switchers, expand/collapse, and collapsible category rows
+  $('#acct-fy-select').addEventListener('change', e => onFYChange(e.target.value));
+  $('#tax-fy-select').addEventListener('change', e => onFYChange(e.target.value));
+  $('#acct-expand').addEventListener('click', () => toggleAllCats('acct'));
+  $('#tax-expand').addEventListener('click', () => toggleAllCats('tax'));
+  ['acct', 'tax'].forEach(kind => {
+    $('#' + kind + '-wrap').addEventListener('click', e => {
+      const row = e.target.closest('tr.cat-row');
+      if (row && row.dataset.key) toggleCat(row.dataset.key);
+    });
+  });
   $('#btn-import').addEventListener('click', () => $('#import-file').click());
   $('#import-file').addEventListener('change', e => { if (e.target.files[0]) importJSON(e.target.files[0]); e.target.value = ''; });
   $('#btn-sample').addEventListener('click', loadSample);

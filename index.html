@@ -77,38 +77,28 @@
     <section class="view" id="view-acct">
       <div class="view-head">
         <div><h2>Accounting depreciation register</h2><div class="desc" id="acct-fy-label"></div></div>
-        <div class="toolbar"><button id="exp-acct">Export CSV</button></div>
+        <div class="toolbar">
+          <label class="fy-picker">Financial year <select id="acct-fy-select"></select></label>
+          <button id="acct-expand">Expand all</button>
+          <button id="exp-acct">Export CSV</button>
+        </div>
       </div>
-      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Movement schedule for the reporting financial year: opening carrying amount, additions, depreciation charge, disposals and closing net book value. Expand any row for the full year-by-year schedule.</p></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>Asset</th><th>Method</th><th class="num">Opening NBV</th><th class="num">Additions</th>
-            <th class="num">Depreciation</th><th class="num">Disposals</th><th class="num">Closing NBV</th><th class="num">Accum. Dep</th><th>Schedule</th>
-          </tr></thead>
-          <tbody id="acct-body"></tbody>
-          <tfoot id="acct-foot"></tfoot>
-        </table>
-      </div>
+      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Movement by asset category for the selected financial year: opening carrying amount, additions, depreciation charge, disposals and closing net book value. Click a category to expand its individual assets; expand an asset for its full year-by-year schedule.</p></div>
+      <div class="table-wrap" id="acct-wrap"></div>
     </section>
 
     <!-- Tax register -->
     <section class="view" id="view-tax">
       <div class="view-head">
         <div><h2>Tax depreciation register (capital allowances)</h2><div class="desc" id="tax-fy-label"></div></div>
-        <div class="toolbar"><button id="exp-tax">Export CSV</button></div>
+        <div class="toolbar">
+          <label class="fy-picker">Financial year <select id="tax-fy-select"></select></label>
+          <button id="tax-expand">Expand all</button>
+          <button id="exp-tax">Export CSV</button>
+        </div>
       </div>
-      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Tax written-down values using capital-allowance rates (diminishing value or prime cost), independent of the accounting register. Supports an optional first-year initial allowance and a separate tax cost base.</p></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>Asset</th><th>Method</th><th class="num">Tax Cost</th><th class="num">Opening TWDV</th><th class="num">Additions</th>
-            <th class="num">Tax Depreciation</th><th class="num">Disposals</th><th class="num">Closing TWDV</th><th>Schedule</th>
-          </tr></thead>
-          <tbody id="tax-body"></tbody>
-          <tfoot id="tax-foot"></tfoot>
-        </table>
-      </div>
+      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Tax written-down values using capital-allowance rates (diminishing value or prime cost), independent of the accounting register. Click a category to expand its individual assets.</p></div>
+      <div class="table-wrap" id="tax-wrap"></div>
     </section>
 
     <!-- Disposals -->
