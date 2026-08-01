@@ -58,7 +58,13 @@ function esc(s) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 function parseDate(iso) { if (!iso) return null; const d = new Date(iso + 'T00:00:00'); return isNaN(d) ? null : d; }
-function toISO(d) { return d ? d.toISOString().slice(0, 10) : ''; }
+function toISO(d) {
+  if (!d) return '';
+  // Use LOCAL date parts, not toISOString() (which shifts to UTC and can roll
+  // a local-midnight date back a day in timezones ahead of UTC — that made the
+  // FY selector report 29 Jun instead of 30 Jun, under-depreciating by a day).
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
 function reportingDate() { return parseDate(settings.reportingDate) || new Date(new Date().toDateString()); }
