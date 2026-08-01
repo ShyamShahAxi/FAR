@@ -1,5 +1,5 @@
 window.AUS155 = {
-  "version": "AUS155-2026-06-30.3",
+  "version": "AUS155-2026-06-30.4",
   "settings": {
     "companyName": "AxiCorp Pte Ltd (Singapore) — AUS155",
     "currency": "$",
