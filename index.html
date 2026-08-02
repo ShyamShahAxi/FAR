@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fixed Asset Register</title>
   <meta name="description" content="Fixed Asset Register with separate accounting and tax depreciation registers. Runs entirely in your browser." />
-  <link rel="stylesheet" href="styles.css?v=13" />
+  <link rel="stylesheet" href="styles.css?v=14" />
 </head>
 <body>
   <header class="app-header">
@@ -93,7 +93,7 @@
           <button id="exp-tax">Export CSV</button>
         </div>
       </div>
-      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Tax written-down values using capital-allowance rates (diminishing value or prime cost), independent of the accounting register. Transfers show WIP items placed in service during the year. Click a category to expand its individual assets.</p></div>
+      <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Capital allowances (Singapore): Computer Equipment and Software Development are written off 100% in the year they enter service (S19A one-year write-off); Furniture, Fixtures and Leasehold over 3 years. Allowances are <strong>not</strong> time-apportioned — a full annual allowance is claimed in each year of assessment the asset is in use. WIP claims nothing until it transfers in. The <strong>Deferred tax</strong> column shows the liability on the temporary difference (accounting NBV − tax WDV) at your set rate.</p></div>
       <div class="table-wrap" id="tax-wrap"></div>
     </section>
 
@@ -132,6 +132,7 @@
                 <option value="10">October</option><option value="11">November</option><option value="12">December</option>
               </select></div>
             <div class="field"><label>Financial year-end day</label><input id="s-fyEndDay" type="number" min="1" max="31"></div>
+            <div class="field"><label>Deferred tax rate %</label><input id="s-dtRate" type="number" step="0.01" min="0" max="100" placeholder="e.g. 17"></div>
           </div>
           <div style="margin-top:16px"><button class="primary" id="btn-save-settings">Save settings</button></div>
         </div>
@@ -172,7 +173,7 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="data-aus155.js?v=13"></script>
-  <script src="app.js?v=13"></script>
+  <script src="data-aus155.js?v=14"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>
