@@ -16,6 +16,7 @@ const defaultSettings = {
   fyEndMonth: 6,   // 1-12 ; Australian default 30 June
   fyEndDay: 30,
   reportingDate: null, // ISO yyyy-mm-dd ; null => today
+  dtRate: 17,      // deferred-tax rate % (Singapore corporate tax 17%)
 };
 
 let settings = loadSettings();
@@ -184,8 +185,14 @@ function buildSchedule(a, kind, asOf) {
     const depWinStart = depStart > winStart ? depStart : winStart;
     const daysInFY = daysBetween(fyStart, fyEnd) + 1;
     const depDays = winEnd >= depWinStart ? daysBetween(depWinStart, winEnd) + 1 : 0;
-    const frac = Math.min(1, depDays / daysInFY);
+    let frac = Math.min(1, depDays / daysInFY);
     const inServiceThisFY = depStart >= fyStart && depStart <= fyEnd;
+
+    // Tax (capital allowances) are NOT time-apportioned: a full annual
+    // allowance is claimed in each year of assessment the asset is in use,
+    // from the in-service YA — no pro-rating for the acquisition-year part
+    // period. (Accounting depreciation keeps the day-count proration above.)
+    if (kind === 'tax') frac = depDays > 0 ? 1 : 0;
 
     opening = carry;
     const addition = firstFY ? base : 0;
@@ -368,6 +375,7 @@ function renderDashboard() {
     <div class="kpi"><div class="label">Net Book Value</div><div class="value sm">${fmt(totalNBV)}</div><div class="hint">accounting carrying amount</div></div>
     <div class="kpi"><div class="label">Tax Written-Down Value</div><div class="value sm">${fmt(totalTaxWDV)}</div><div class="hint">closing TWDV</div></div>
     <div class="kpi"><div class="label">Temporary Difference</div><div class="value sm ${totalNBV - totalTaxWDV >= 0 ? '' : 'neg'}">${fmtSigned(totalNBV - totalTaxWDV)}</div><div class="hint">NBV − TWDV</div></div>
+    <div class="kpi"><div class="label">Deferred Tax ${totalNBV - totalTaxWDV >= 0 ? 'Liability' : 'Asset'}</div><div class="value sm ${totalNBV - totalTaxWDV >= 0 ? '' : 'neg'}">${fmt(Math.abs((totalNBV - totalTaxWDV) * num(settings.dtRate) / 100))}</div><div class="hint">@ ${pct(settings.dtRate)}</div></div>
   `;
 
   const cats = Object.entries(byCat).sort((a, b) => b[1].cost - a[1].cost);
@@ -387,6 +395,7 @@ function renderDashboard() {
         <tr><td>Accounting depreciation charge (FY)</td><td class="num">${fmt(fyCharge)}</td></tr>
         <tr><td>Tax depreciation / allowances (FY)</td><td class="num">${fmt(fyTaxCharge)}</td></tr>
         <tr><td>Book-vs-tax charge difference (FY)</td><td class="num ${fyCharge - fyTaxCharge >= 0 ? '' : 'neg'}">${fmtSigned(fyCharge - fyTaxCharge)}</td></tr>
+        <tr><td>Deferred tax ${totalNBV - totalTaxWDV >= 0 ? 'liability' : 'asset'} (NBV − TWDV × ${pct(settings.dtRate)})</td><td class="num ${totalNBV - totalTaxWDV >= 0 ? '' : 'neg'}">${fmt(Math.abs((totalNBV - totalTaxWDV) * num(settings.dtRate) / 100))}</td></tr>
       </tbody>
     </table>`;
 }
@@ -526,9 +535,10 @@ function methodLabelFor(a, kind) {
     return a.acctMethod === 'reducing-balance'
       ? `Reducing balance ${pct(a.acctRate)}` : `Straight-line ${num(a.usefulLife)}y`;
   }
+  if (num(a.taxInitialAllowance) >= 100) return '100% write-off (1-year)';
   const base = a.taxMethod === 'diminishing-value'
     ? `Diminishing value ${pct(a.taxRate)}`
-    : (a.taxRate ? `Prime cost ${pct(a.taxRate)}` : `Prime cost ${num(a.taxLife)}y`);
+    : (a.taxRate ? `Prime cost ${pct(a.taxRate)}` : `Prime cost ${num(a.taxLife)}y allowance`);
   return base + (num(a.taxInitialAllowance) ? ` + IA ${pct(a.taxInitialAllowance)}` : '');
 }
 
@@ -577,6 +587,9 @@ function renderRegister(kind) {
   const fyEnd = fyEndFor(reportingDate());
   const fyStart = fyStartFor(fyEnd);
   const closeLbl = kind === 'tax' ? 'TWDV' : 'NBV';
+  const isTax = kind === 'tax';
+  const rate = num(settings.dtRate) / 100;      // deferred-tax rate
+  const chargeLbl = isTax ? 'Capital allowance' : 'Depreciation';
 
   // Build category → contribution lines. A WIP asset placed in service in the
   // viewed FY splits across its holding and operating categories (see registerLines).
@@ -589,15 +602,19 @@ function renderRegister(kind) {
   });
   const cats = Object.keys(groups).sort();
 
-  let tO = 0, tA = 0, tX = 0, tC = 0, tD = 0, tCl = 0;
+  let tO = 0, tA = 0, tX = 0, tC = 0, tD = 0, tCl = 0, tDt = 0;
   let bodies = '';
 
   cats.forEach(cat => {
     const entries = groups[cat].slice().sort((p, q) => (p.a.tag || '').localeCompare(q.a.tag || ''));
-    let cO = 0, cA = 0, cX = 0, cC = 0, cD = 0, cCl = 0, hidden = 0;
+    let cO = 0, cA = 0, cX = 0, cC = 0, cD = 0, cCl = 0, cDt = 0, hidden = 0;
     const detailRows = [];
     entries.forEach(({ a, ln }) => {
       cO += ln.opening; cA += ln.addition; cX += ln.transfer; cC += ln.charge; cD += ln.disposal; cCl += ln.closing;
+      // Deferred tax on this line = (accounting NBV − tax WDV) × rate. Only on
+      // the operating line (not the WIP transfer-out), so it isn't double counted.
+      const dt = isTax && ln.transferRow !== -1 ? (positionAt(a, 'acct').nbv - ln.closing) * rate : 0;
+      cDt += dt;
       // Dormant & nil: no opening, no movement, no closing — hide unless toggled on.
       const dormantNil = Math.abs(ln.opening) < 0.005 && Math.abs(ln.addition) < 0.005 && Math.abs(ln.transfer) < 0.005 &&
         Math.abs(ln.charge) < 0.005 && Math.abs(ln.disposal) < 0.005 && Math.abs(ln.closing) < 0.005;
@@ -617,12 +634,13 @@ function renderRegister(kind) {
         <td class="num">${movCell(ln.charge)}</td>
         <td class="num">${movCell(ln.disposal)}</td>
         <td class="num">${fmt(ln.closing)}</td>
+        ${isTax ? `<td class="num">${fmtSigned(dt)}</td>` : ''}
       </tr>`);
     });
-    if (hidden) detailRows.push(`<tr class="asset-row hint"><td colspan="7" class="hint-text" style="padding-left:28px">${hidden} fully-depreciated asset${hidden > 1 ? 's' : ''} hidden &middot; tick &ldquo;Show fully-depreciated&rdquo; to view.</td></tr>`);
+    if (hidden) detailRows.push(`<tr class="asset-row hint"><td colspan="${isTax ? 8 : 7}" class="hint-text" style="padding-left:28px">${hidden} fully-depreciated asset${hidden > 1 ? 's' : ''} hidden &middot; tick &ldquo;Show fully-depreciated&rdquo; to view.</td></tr>`);
     const detail = detailRows.join('');
 
-    tO += cO; tA += cA; tX += cX; tC += cC; tD += cD; tCl += cCl;
+    tO += cO; tA += cA; tX += cX; tC += cC; tD += cD; tCl += cCl; tDt += cDt;
     const key = kind + '::' + cat;
     const open = expandedCats.has(key);
     bodies += `<tbody class="cat-group">
@@ -634,21 +652,23 @@ function renderRegister(kind) {
         <td class="num">${movCell(cC)}</td>
         <td class="num">${movCell(cD)}</td>
         <td class="num">${fmt(cCl)}</td>
+        ${isTax ? `<td class="num">${fmtSigned(cDt)}</td>` : ''}
       </tr>
       ${open ? detail : ''}
     </tbody>`;
   });
 
-  const empty = `<tbody><tr class="empty-row"><td colspan="7">No assets to report.</td></tr></tbody>`;
+  const empty = `<tbody><tr class="empty-row"><td colspan="${isTax ? 8 : 7}">No assets to report.</td></tr></tbody>`;
   wrap.innerHTML = `<table class="reg-table">
     <thead><tr>
       <th>Category / Asset</th>
       <th class="num">Opening ${closeLbl}<div class="hint-th">${fmtDate(fyStart)}</div></th>
       <th class="num">Additions</th>
       <th class="num">Transfers</th>
-      <th class="num">Depreciation</th>
+      <th class="num">${chargeLbl}</th>
       <th class="num">Disposals</th>
       <th class="num">Closing ${closeLbl}<div class="hint-th">${fmtDate(fyEnd)}</div></th>
+      ${isTax ? `<th class="num">Deferred tax<div class="hint-th">liab. @ ${pct(settings.dtRate)}</div></th>` : ''}
     </tr></thead>
     ${cats.length ? bodies : empty}
     <tfoot><tr>
@@ -659,6 +679,7 @@ function renderRegister(kind) {
       <td class="num">${movCell(tC)}</td>
       <td class="num">${movCell(tD)}</td>
       <td class="num">${fmt(tCl)}</td>
+      ${isTax ? `<td class="num">${fmtSigned(tDt)}</td>` : ''}
     </tr></tfoot>
   </table>`;
 
@@ -1071,6 +1092,7 @@ function applySettingsToUI() {
   $('#s-fyEndMonth').value = settings.fyEndMonth;
   $('#s-fyEndDay').value = settings.fyEndDay;
   $('#s-reportingDate').value = settings.reportingDate || toISO(new Date());
+  if ($('#s-dtRate')) $('#s-dtRate').value = settings.dtRate;
 }
 
 function saveSettingsFromUI() {
@@ -1079,6 +1101,7 @@ function saveSettingsFromUI() {
   settings.fyEndMonth = parseInt($('#s-fyEndMonth').value, 10) || 6;
   settings.fyEndDay = parseInt($('#s-fyEndDay').value, 10) || 30;
   settings.reportingDate = $('#s-reportingDate').value || null;
+  if ($('#s-dtRate')) settings.dtRate = num($('#s-dtRate').value);
   saveSettings();
   applySettingsToUI();
   renderAll();

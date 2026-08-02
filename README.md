@@ -15,9 +15,9 @@ It is a single static web app — no server, no build step, no dependencies. All
 | **Asset master** | Tag/ID, description, category, location, department, custodian, acquisition date |
 | **Acquisition & cost** | Supplier, invoice, purchase cost + installation/freight + other capitalised costs → total capitalised value |
 | **Accounting register** | Straight-line or reducing-balance depreciation, useful life, residual value. Per-year movement: opening NBV, additions, depreciation charge, disposals, closing NBV, accumulated depreciation |
-| **Tax register** | Independent **diminishing-value** or **prime-cost** capital allowances, own tax cost base, optional first-year initial allowance, closing tax written-down value (TWDV) |
+| **Tax register** | Independent capital allowances (own tax cost base): 100% one-year write-off, N-year write-off, or diminishing/prime-cost rates, plus an optional first-year initial allowance and a **deferred-tax** column. Closing tax written-down value (TWDV). Tax allowances are **not time-apportioned** (see below) |
 | **Disposals** | Accounting profit/(loss) on disposal **and** tax balancing charge/allowance |
-| **Dashboard** | Gross cost, accumulated depreciation, NBV, TWDV, and the NBV − TWDV temporary difference (the base for deferred tax) |
+| **Dashboard** | Gross cost, accumulated depreciation, NBV, TWDV, the NBV − TWDV temporary difference, and the resulting **deferred tax** (at a configurable rate, default 17%) |
 | **Data** | JSON backup/restore, CSV export of assets and of each register, sample data, configurable financial-year end, reporting date, currency and company name |
 
 Every figure is computed **as at the reporting date** you set. Set the reporting date to your period end (e.g. 30 June) to get full-year register figures; set it mid-year for a partial-year position.
@@ -26,8 +26,12 @@ Every figure is computed **as at the reporting date** you set. Set the reporting
 
 - **Straight-line / prime-cost:** `(cost − residual) ÷ useful life`, or `cost × rate%` when a capital-allowance rate is used. The first and final years are pro-rated by days in service.
 - **Reducing-balance / diminishing-value:** `rate% × opening carrying amount`, pro-rated in the first year. Accounting depreciation never reduces the carrying amount below the residual value; tax depreciates toward nil.
-- **Initial allowance (tax only):** an optional extra first-year deduction of `cost × initial-allowance%`.
+- **Initial allowance (tax only):** an optional extra first-year deduction of `cost × initial-allowance%`. An initial allowance of **100%** models a full one-year write-off (e.g. Singapore S19A for computers and software).
+- **Tax is not time-apportioned:** capital allowances give a **full** annual allowance in each year of assessment the asset is in use — from the in-service year, with no day-count pro-rating of the acquisition-year part period (accounting depreciation still pro-rates). WIP claims nothing until it is placed in service.
+- **Deferred tax:** shown per category in the tax register and totalled on the dashboard as `(accounting NBV − tax WDV) × rate`. Accelerated tax write-off makes NBV > TWDV, i.e. a deferred tax **liability**; the rate defaults to 17% (Singapore) and is configurable in Data & Settings.
 - **Disposal:** the remaining carrying amount at the disposal date is removed. Accounting gain/(loss) = proceeds − NBV; tax balancing adjustment = proceeds − TWDV (positive = balancing charge, negative = balancing allowance).
+
+> The bundled AUS155 dataset applies the Singapore treatment: **100% one-year write-off** for Computer Equipment (140100) and Software Development (150100), **3-year** write-off for Furniture/Fixtures/Leasehold, and no allowance on Asset WIP until it transfers into service. Confirm the method and rates against current Singapore tax legislation before relying on the figures.
 
 The engine builds a full year-by-year schedule per asset (expand the **Schedule** row in either register to see it).
 
