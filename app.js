@@ -7,6 +7,7 @@
 
 const STORE_KEY = 'far.assets.v1';
 const SETTINGS_KEY = 'far.settings.v1';
+const LEASES_KEY = 'far.leases.v1';
 const DATA_VERSION_KEY = 'far.dataVersion'; // tracks which bundled dataset is loaded
 
 /* ---------- Settings ---------- */
@@ -37,6 +38,15 @@ function loadAssets() {
   } catch (e) { return []; }
 }
 function saveAssets() { localStorage.setItem(STORE_KEY, JSON.stringify(assets)); }
+
+let leases = loadLeases();
+function loadLeases() {
+  try {
+    const l = JSON.parse(localStorage.getItem(LEASES_KEY));
+    return Array.isArray(l) ? l : [];
+  } catch (e) { return []; }
+}
+function saveLeases() { localStorage.setItem(LEASES_KEY, JSON.stringify(leases)); }
 
 /* ---------- Helpers ---------- */
 function uid() {
@@ -810,6 +820,86 @@ function renderDisposals() {
 }
 
 /* =============================================================
+   LEASES (IFRS 16 right-of-use assets & lease liabilities)
+   A disclosure schedule from the period movements. Right-of-use assets
+   are depreciated over the lease term (P&L expense, no tax capital
+   allowance — the tax deduction is the actual lease payment); the lease
+   liability unwinds with interest and is reduced by payments.
+   ============================================================= */
+function renderLeases() {
+  const wrap = $('#leases-wrap');
+  if (!wrap) return; // stale/cached HTML guard
+  if (!leases.length) {
+    wrap.innerHTML = '<p class="hint-text">No leases recorded. The bundled AUS155 dataset carries the aggregate IFRS 16 position; a per-lease schedule needs each lease’s term and payments.</p>';
+    return;
+  }
+  let rouOpen = 0, rouAdd = 0, rouDep = 0, rouClose = 0;
+  let liaOpen = 0, liaAdd = 0, liaPay = 0, liaClose = 0;
+  const rows = leases.map(l => {
+    const roOpen = num(l.rouCostOpening) - num(l.rouAccDepOpening);
+    const roClose = num(l.rouCostClosing) - num(l.rouAccDepClosing);
+    rouOpen += roOpen; rouAdd += num(l.rouAdditions); rouDep += num(l.rouDepCharge); rouClose += roClose;
+    liaOpen += num(l.liabOpening); liaAdd += num(l.liabAdditions); liaPay += num(l.liabPayments); liaClose += num(l.liabClosing);
+    const net = roClose - num(l.liabClosing);
+    return `<tr class="asset-row">
+      <td class="asset-name"><strong>${esc(l.name || l.id)}</strong>${l.notes ? `<div class="hint-text">${esc(l.notes)}</div>` : ''}</td>
+      <td class="num">${fmt(roOpen)}</td>
+      <td class="num">${num(l.rouAdditions) ? fmt(l.rouAdditions) : '–'}</td>
+      <td class="num">${movCell(num(l.rouDepCharge))}</td>
+      <td class="num">${fmt(roClose)}</td>
+      <td class="num">${fmt(l.liabClosing)}</td>
+      <td class="num ${net >= 0 ? '' : 'neg'}">${fmtSigned(net)}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="card" style="padding:14px 18px;margin-bottom:14px"><p class="legend" style="margin:0">Right-of-use (ROU) assets and lease liabilities under IFRS 16, from the period movements. ROU assets are depreciated over the lease term; the liability unwinds with interest and reduces as lease payments are made. For <strong>tax</strong>, ROU depreciation and interest are added back and the actual lease payments are deducted instead — there is no capital allowance on an ROU asset.</p></div>
+    <div class="table-wrap"><table class="reg-table">
+      <thead><tr>
+        <th>Lease</th>
+        <th class="num">Opening ROU NBV</th>
+        <th class="num">Additions</th>
+        <th class="num">Depreciation</th>
+        <th class="num">Closing ROU NBV</th>
+        <th class="num">Lease liability</th>
+        <th class="num">Net position</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr>
+        <td>Totals</td>
+        <td class="num">${fmt(rouOpen)}</td>
+        <td class="num">${rouAdd ? fmt(rouAdd) : '–'}</td>
+        <td class="num">${movCell(rouDep)}</td>
+        <td class="num">${fmt(rouClose)}</td>
+        <td class="num">${fmt(liaClose)}</td>
+        <td class="num ${rouClose - liaClose >= 0 ? '' : 'neg'}">${fmtSigned(rouClose - liaClose)}</td>
+      </tr></tfoot>
+    </table></div>
+    <div class="two-col" style="margin-top:16px">
+      <div class="card">
+        <h3 style="margin-top:0">Right-of-use asset movement (FY)</h3>
+        <table><tbody>
+          <tr><td>Opening cost</td><td class="num">${fmt(rouCostTotal('rouCostOpening'))}</td></tr>
+          <tr><td>Additions / remeasurement</td><td class="num">${fmt(rouCostTotal('rouAdditions'))}</td></tr>
+          <tr><td>Closing cost</td><td class="num">${fmt(rouCostTotal('rouCostClosing'))}</td></tr>
+          <tr><td>Accumulated depreciation</td><td class="num">${movCell(rouCostTotal('rouAccDepClosing'))}</td></tr>
+          <tr><td><strong>Closing ROU net book value</strong></td><td class="num"><strong>${fmt(rouClose)}</strong></td></tr>
+        </tbody></table>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Lease liability movement (FY)</h3>
+        <table><tbody>
+          <tr><td>Opening liability</td><td class="num">${fmt(liaOpen)}</td></tr>
+          <tr><td>New leases & interest accretion</td><td class="num">${fmt(liaAdd)}</td></tr>
+          <tr><td>Lease payments</td><td class="num">${movCell(liaPay)}</td></tr>
+          <tr><td><strong>Closing lease liability</strong></td><td class="num"><strong>${fmt(liaClose)}</strong></td></tr>
+        </tbody></table>
+      </div>
+    </div>`;
+}
+function rouCostTotal(field) { return leases.reduce((s, l) => s + num(l[field]), 0); }
+
+/* =============================================================
    ASSET FORM (modal)
    ============================================================= */
 function blankAsset() {
@@ -1055,8 +1145,10 @@ function applyBundledDataset() {
   if (!data || !Array.isArray(data.assets)) return false;
   assets = JSON.parse(JSON.stringify(data.assets));
   settings = Object.assign({}, defaultSettings, data.settings || {});
+  leases = Array.isArray(data.leases) ? JSON.parse(JSON.stringify(data.leases)) : [];
   saveAssets();
   saveSettings();
+  saveLeases();
   if (data.version) localStorage.setItem(DATA_VERSION_KEY, data.version);
   return true;
 }
@@ -1124,6 +1216,7 @@ function renderAll() {
   else if (activeTab === 'assets') renderAssets();
   else if (activeTab === 'acct') renderAcctRegister();
   else if (activeTab === 'tax') renderTaxRegister();
+  else if (activeTab === 'leases') renderLeases();
   else if (activeTab === 'disposals') renderDisposals();
 }
 function applySettingsHeader() {
@@ -1198,6 +1291,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (data && Array.isArray(data.assets) &&
       (!assets.length || (bundledVer && bundledVer !== storedVer))) {
     applyBundledDataset();
+  }
+  // Backfill leases from the bundled data if missing (e.g. added after the
+  // assets were already stored).
+  if (!leases.length && data && Array.isArray(data.leases)) {
+    leases = JSON.parse(JSON.stringify(data.leases));
+    saveLeases();
   }
   applySettingsToUI();
   activateTab('dashboard');

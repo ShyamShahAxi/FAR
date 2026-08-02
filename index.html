@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fixed Asset Register</title>
   <meta name="description" content="Fixed Asset Register with separate accounting and tax depreciation registers. Runs entirely in your browser." />
-  <link rel="stylesheet" href="styles.css?v=15" />
+  <link rel="stylesheet" href="styles.css?v=16" />
 </head>
 <body>
   <header class="app-header">
@@ -24,6 +24,7 @@
     <button class="tab" data-tab="assets">Assets</button>
     <button class="tab" data-tab="acct">Accounting Register</button>
     <button class="tab" data-tab="tax">Tax Register</button>
+    <button class="tab" data-tab="leases">Leases</button>
     <button class="tab" data-tab="disposals">Disposals</button>
     <button class="tab" data-tab="data">Data &amp; Settings</button>
   </nav>
@@ -95,6 +96,14 @@
       </div>
       <div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">Capital allowances (Singapore): Computer Equipment and Software Development are written off 100% in the year they enter service (S19A one-year write-off); Furniture, Fixtures and Leasehold over 3 years. Allowances are <strong>not</strong> time-apportioned — a full annual allowance is claimed in each year of assessment the asset is in use. WIP claims nothing until it transfers in. The <strong>Deferred tax</strong> column shows the liability on the temporary difference (accounting NBV − tax WDV) at your set rate.</p></div>
       <div class="table-wrap" id="tax-wrap"></div>
+    </section>
+
+    <!-- Leases -->
+    <section class="view" id="view-leases">
+      <div class="view-head">
+        <div><h2>Leases (IFRS 16)</h2><div class="desc">Right-of-use assets and lease liabilities.</div></div>
+      </div>
+      <div id="leases-wrap"></div>
     </section>
 
     <!-- Disposals -->
@@ -173,7 +182,7 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="data-aus155.js?v=15"></script>
-  <script src="app.js?v=15"></script>
+  <script src="data-aus155.js?v=16"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

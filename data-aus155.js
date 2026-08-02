@@ -1,5 +1,5 @@
 window.AUS155 = {
-  "version": "AUS155-2026-06-30.6",
+  "version": "AUS155-2026-06-30.7",
   "settings": {
     "companyName": "AxiCorp Pte Ltd (Singapore) — AUS155",
     "currency": "$",
@@ -2979,6 +2979,23 @@ window.AUS155 = {
       "disposalDate": "",
       "disposalProceeds": "",
       "notes": "FY26 WIP (not yet in service) per Sage GL 150120 as at 30 Jun 2026."
+    }
+  ],
+  "leases": [
+    {
+      "id": "LEASE-AUS155",
+      "name": "Office & property leases (aggregate)",
+      "notes": "IFRS 16 right-of-use assets and lease liabilities, aggregate per Sage GL 140300/140310/140340 for FY26. Per-lease amortisation needs the underlying lease terms.",
+      "rouCostOpening": "1139358.45",
+      "rouAdditions": "1271242.59",
+      "rouCostClosing": "2410601.04",
+      "rouAccDepOpening": "959256.76",
+      "rouDepCharge": "340329.27",
+      "rouAccDepClosing": "1299586.03",
+      "liabOpening": "189386.85",
+      "liabAdditions": "1224486.76",
+      "liabPayments": "307109.63",
+      "liabClosing": "1106763.98"
     }
   ]
 };
