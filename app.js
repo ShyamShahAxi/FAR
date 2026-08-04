@@ -146,14 +146,22 @@ function buildSchedule(a, kind, asOf) {
   const acq = parseDate(a.acquisitionDate);
   if (!acq) return { rows: [], error: 'No acquisition date' };
 
+  // Opening-balance (opening-WDV) mode — accounting only. The asset is brought
+  // forward at a net book value as at openingDate (= openingCost − openingAccDep),
+  // and only depreciation from that date is computed, over the remaining life in
+  // usefulLife. Lets a register tie to an opening trial balance without
+  // re-deriving each asset's full pre-opening history.
+  const opWDV = (kind === 'acct' && parseDate(a.openingDate)) ? parseDate(a.openingDate) : null;
+  const startDate = opWDV || acq;
+
   const disposal = a.disposed ? parseDate(a.disposalDate) : null;
   const horizon = asOf || reportingDate();
-  const depStart = depStartDate(a) || acq;   // depreciation begins here (in-service date)
+  const depStart = opWDV || depStartDate(a) || acq;   // depreciation begins here (in-service date)
 
   let method, base, residual, lifeYears, rate, initialAllow;
   if (kind === 'acct') {
     method = a.acctMethod || 'straight-line';
-    base = acctCost(a);
+    base = opWDV ? (num(a.openingCost) - num(a.openingAccDep)) : acctCost(a);
     residual = num(a.residualValue);
     lifeYears = num(a.usefulLife);
     rate = num(a.acctRate);
@@ -173,8 +181,8 @@ function buildSchedule(a, kind, asOf) {
 
   const rows = [];
   let opening = 0;
-  let accumulated = 0;
-  let fyEnd = fyEndFor(acq);
+  let accumulated = opWDV ? num(a.openingAccDep) : 0;
+  let fyEnd = fyEndFor(startDate);
   let carry = base;               // current book/written-down value
   let firstFY = true;
   let guard = 0;
@@ -184,8 +192,9 @@ function buildSchedule(a, kind, asOf) {
   while (guard++ < 200) {
     const fyStart = fyStartFor(fyEnd);
 
-    // Existence window inside this FY (cost sits on the register from acquisition)
-    const winStart = acq > fyStart ? acq : fyStart;
+    // Existence window inside this FY (cost sits on the register from acquisition,
+    // or from the opening-balance date in opening-WDV mode)
+    const winStart = startDate > fyStart ? startDate : fyStart;
     let winEnd = fyEnd;
     if (disposal && disposal < winEnd) winEnd = disposal;
     // Only accrue depreciation up to the reporting date (partial final year)
@@ -911,6 +920,7 @@ function blankAsset() {
     supplier: '', invoice: '', acquisitionDate: toISO(new Date()),
     purchaseCost: '', installationCost: '', otherCost: '',
     acctMethod: 'straight-line', usefulLife: 5, residualValue: '', acctRate: '',
+    openingDate: '', openingCost: '', openingAccDep: '',
     taxCostOverride: '', taxMethod: 'diminishing-value', taxLife: '', taxRate: 30, taxInitialAllowance: '',
     disposed: false, disposalDate: '', disposalProceeds: '', notes: '',
   };
@@ -955,6 +965,12 @@ function openAsset(id) {
       <div class="field"><label>Useful life (years)</label><input id="f-usefulLife" type="number" step="0.5" value="${esc(g('usefulLife'))}"></div>
       <div class="field"><label>Residual value</label><input id="f-residualValue" type="number" step="0.01" value="${esc(g('residualValue'))}"></div>
       <div class="field"><label>Reducing-balance rate %</label><input id="f-acctRate" type="number" step="0.01" value="${esc(g('acctRate'))}" placeholder="used if reducing balance"></div>
+
+      <div class="form-section-title">Opening balance (brought forward)</div>
+      <div class="field"><label>Opening date <span class="hint-text">(b/f as at; blank = full history)</span></label><input id="f-openingDate" type="date" value="${esc(g('openingDate'))}"></div>
+      <div class="field"><label>Opening cost (gross)</label><input id="f-openingCost" type="number" step="0.01" value="${esc(g('openingCost'))}"></div>
+      <div class="field"><label>Opening accumulated depreciation</label><input id="f-openingAccDep" type="number" step="0.01" value="${esc(g('openingAccDep'))}"></div>
+      <div class="field full"><p class="hint-text" style="margin:0">Set an opening date to bring the asset forward at its net book value (opening cost − opening accumulated depreciation) as at that date, depreciating only from then over the remaining useful life above. Use to tie a register to an opening trial balance without re-deriving the full history.</p></div>
 
       <div class="form-section-title">Tax depreciation / capital allowances</div>
       <div class="field"><label>Tax cost base <span class="hint-text">(blank = accounting cost)</span></label><input id="f-taxCostOverride" type="number" step="0.01" value="${esc(g('taxCostOverride'))}"></div>
@@ -1009,6 +1025,9 @@ function saveAsset() {
     usefulLife: val('f-usefulLife'),
     residualValue: val('f-residualValue'),
     acctRate: val('f-acctRate'),
+    openingDate: val('f-openingDate'),
+    openingCost: val('f-openingCost'),
+    openingAccDep: val('f-openingAccDep'),
     taxCostOverride: val('f-taxCostOverride'),
     taxMethod: val('f-taxMethod'),
     taxRate: val('f-taxRate'),
