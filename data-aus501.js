@@ -1,8 +1,8 @@
 window.AUS501 = {
-    "version":  "AUS501-2025-06-30.1",
+    "version":  "AUS501-2025-06-30.2",
     "settings":  {
                      "companyName":  "CB Financial Services Limited (UK) - AUS501",
-                     "currency":  "£",
+                     "currency":  "$",
                      "fyEndMonth":  6,
                      "fyEndDay":  30,
                      "reportingDate":  "2025-06-30",
