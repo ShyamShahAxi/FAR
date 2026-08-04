@@ -9,6 +9,8 @@ const STORE_KEY = 'far.assets.v1';
 const SETTINGS_KEY = 'far.settings.v1';
 const LEASES_KEY = 'far.leases.v1';
 const DATA_VERSION_KEY = 'far.dataVersion'; // tracks which bundled dataset is loaded
+const ACTIVE_ENTITY_KEY = 'far.activeEntity';  // code of the entity whose register is active
+const ENTITIES_KEY = 'far.entities.v1';        // archive of {settings,assets,leases} per entity
 
 /* ---------- Settings ---------- */
 const defaultSettings = {
@@ -1139,9 +1141,9 @@ function clearAll() {
   toast('All assets cleared.');
 }
 
-// Copy the bundled AUS155 dataset into local storage and stamp its version.
-function applyBundledDataset() {
-  const data = window.AUS155;
+// Copy a bundled dataset into the active working copy and stamp its version.
+function applyBundledDataset(data) {
+  data = data || window.AUS155;
   if (!data || !Array.isArray(data.assets)) return false;
   assets = JSON.parse(JSON.stringify(data.assets));
   settings = Object.assign({}, defaultSettings, data.settings || {});
@@ -1150,18 +1152,89 @@ function applyBundledDataset() {
   saveSettings();
   saveLeases();
   if (data.version) localStorage.setItem(DATA_VERSION_KEY, data.version);
+  localStorage.setItem(ACTIVE_ENTITY_KEY, entityCodeOf(data));
   return true;
+}
+
+/* ---------- Multi-entity registers ----------
+   The active working copy (STORE_KEY/SETTINGS_KEY/LEASES_KEY) is one entity's
+   register. Every entity worked on is archived under ENTITIES_KEY, keyed by a
+   short code taken from the dataset version (e.g. "AUS155-2026-…" → AUS155), so
+   the header dropdown can switch between them. The active entity is snapshotted
+   into the archive only when leaving it. */
+function bundledDatasets() { return [window.AUS155, window.AUS501].filter(d => d && Array.isArray(d.assets)); }
+function entityCodeOf(dataOrVer) {
+  const v = typeof dataOrVer === 'string' ? dataOrVer : (dataOrVer && dataOrVer.version) || '';
+  return v.split('-')[0] || '';
+}
+function bundledFor(code) { return bundledDatasets().find(d => entityCodeOf(d) === code); }
+function activeEntityCode() {
+  return localStorage.getItem(ACTIVE_ENTITY_KEY) || entityCodeOf(localStorage.getItem(DATA_VERSION_KEY) || '') || 'AUS155';
+}
+function loadEntityStore() { try { return JSON.parse(localStorage.getItem(ENTITIES_KEY)) || {}; } catch (e) { return {}; } }
+function saveEntityStore(s) { localStorage.setItem(ENTITIES_KEY, JSON.stringify(s)); }
+function snapshotActiveEntity() {
+  const s = loadEntityStore();
+  s[activeEntityCode()] = {
+    version: localStorage.getItem(DATA_VERSION_KEY) || '',
+    settings: JSON.parse(JSON.stringify(settings)),
+    assets: JSON.parse(JSON.stringify(assets)),
+    leases: JSON.parse(JSON.stringify(leases)),
+  };
+  saveEntityStore(s);
+}
+function availableEntities() {
+  const set = new Set(Object.keys(loadEntityStore()));
+  bundledDatasets().forEach(d => set.add(entityCodeOf(d)));
+  set.add(activeEntityCode());
+  return [...set].filter(Boolean).sort();
+}
+function switchEntity(code) {
+  if (!code || code === activeEntityCode()) return;
+  snapshotActiveEntity();
+  const store = loadEntityStore();
+  if (store[code]) {
+    const e = store[code];
+    assets = JSON.parse(JSON.stringify(e.assets || []));
+    settings = Object.assign({}, defaultSettings, e.settings || {});
+    leases = JSON.parse(JSON.stringify(e.leases || []));
+    if (e.version) localStorage.setItem(DATA_VERSION_KEY, e.version); else localStorage.removeItem(DATA_VERSION_KEY);
+    saveAssets(); saveSettings(); saveLeases();
+    localStorage.setItem(ACTIVE_ENTITY_KEY, code);
+  } else if (bundledFor(code)) {
+    applyBundledDataset(bundledFor(code));
+  } else { toast('No register stored for ' + code); return; }
+  applySettingsToUI(); renderAll(); activateTab('dashboard');
+  toast('Switched to ' + code);
+}
+function renderEntitySelector() {
+  const sel = document.getElementById('entity-select'); if (!sel) return;
+  const cur = activeEntityCode();
+  sel.innerHTML = availableEntities().map(c => `<option value="${esc(c)}"${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
 }
 
 function loadAUS155() {
   const data = window.AUS155;
   if (!data || !Array.isArray(data.assets)) { toast('AUS155 dataset not found.'); return; }
-  if (assets.length && !confirm('Replace current data with the Axi AUS155 (Singapore) register?')) return;
-  applyBundledDataset();
+  if (assets.length && !confirm('Load the Axi AUS155 (Singapore) register into the AUS155 entity?')) return;
+  snapshotActiveEntity();
+  applyBundledDataset(data);
   applySettingsToUI();
   renderAll();
   activateTab('acct');
   toast('AUS155 register loaded (' + assets.length + ' assets).');
+}
+
+function loadAUS501() {
+  const data = window.AUS501;
+  if (!data || !Array.isArray(data.assets)) { toast('AUS501 dataset not found.'); return; }
+  if (assets.length && !confirm('Load the CB Financial Services (UK) AUS501 register into the AUS501 entity?')) return;
+  snapshotActiveEntity();
+  applyBundledDataset(data);
+  applySettingsToUI();
+  renderAll();
+  activateTab('acct');
+  toast('AUS501 (UK) register loaded (' + assets.length + ' assets).');
 }
 
 function sampleData() {
@@ -1179,6 +1252,7 @@ function applySettingsToUI() {
   $('#company-name').textContent = settings.companyName;
   $('#header-fy').textContent = 'FY end ' + settings.fyEndDay + '/' + settings.fyEndMonth +
     ' · reporting ' + toISO(reportingDate());
+  renderEntitySelector();
   $('#s-companyName').value = settings.companyName;
   $('#s-currency').value = settings.currency;
   $('#s-fyEndMonth').value = settings.fyEndMonth;
@@ -1274,6 +1348,8 @@ function wire() {
   $('#import-file').addEventListener('change', e => { if (e.target.files[0]) importJSON(e.target.files[0]); e.target.value = ''; });
   $('#btn-sample').addEventListener('click', loadSample);
   $('#btn-aus155').addEventListener('click', loadAUS155);
+  const b501 = $('#btn-aus501'); if (b501) b501.addEventListener('click', loadAUS501);
+  const esel = $('#entity-select'); if (esel) esel.addEventListener('change', e => switchEntity(e.target.value));
   $('#btn-clear').addEventListener('click', clearAll);
   $('#btn-save-settings').addEventListener('click', saveSettingsFromUI);
 
@@ -1285,12 +1361,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Auto-load the bundled dataset on first visit, and again automatically
   // whenever it has been updated to a newer version — so a refresh always
   // shows the latest published data without needing to click "Load".
-  const data = window.AUS155;
+  // Auto-apply the ACTIVE entity's bundled dataset (default AUS155) on first
+  // visit or when a newer version is published — without clobbering whichever
+  // entity is currently active.
+  const data = bundledFor(activeEntityCode()) || window.AUS155;
   const bundledVer = data && data.version;
   const storedVer = localStorage.getItem(DATA_VERSION_KEY);
   if (data && Array.isArray(data.assets) &&
       (!assets.length || (bundledVer && bundledVer !== storedVer))) {
-    applyBundledDataset();
+    applyBundledDataset(data);
   }
   // Backfill leases from the bundled data if missing (e.g. added after the
   // assets were already stored).

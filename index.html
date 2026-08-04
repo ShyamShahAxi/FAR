@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fixed Asset Register</title>
   <meta name="description" content="Fixed Asset Register with separate accounting and tax depreciation registers. Runs entirely in your browser." />
-  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="styles.css?v=17" />
 </head>
 <body>
   <header class="app-header">
@@ -16,6 +16,8 @@
     <div class="company">
       <div id="company-name">Company</div>
       <div class="sub" id="header-fy"></div>
+      <div class="entity-switch"><label for="entity-select">Entity</label>
+        <select id="entity-select" title="Switch entity register"></select></div>
     </div>
   </header>
 
@@ -158,11 +160,12 @@
           </div>
           <h3>Sample &amp; reset</h3>
           <div class="toolbar">
-            <button id="btn-aus155">Load Axi AUS155 (Singapore) register</button>
+            <button id="btn-aus155">Load AUS155 (Singapore) register</button>
+            <button id="btn-aus501">Load AUS501 (UK) register</button>
             <button id="btn-sample">Load generic sample</button>
             <button class="danger" id="btn-clear">Clear all data</button>
           </div>
-          <p class="legend">The AUS155 dataset is the real Singapore accounting register as at 30 Jun 2026 (104 assets), imported from the Xero asset export. Recomputed figures tie to the source register to within a cent. Use the financial-year selector on the registers to view earlier years.</p>
+          <p class="legend">Switch entities from the <strong>Entity</strong> selector in the header — each keeps its own register, settings and reporting date. <strong>AUS155</strong> is the Singapore register (30 Jun 2026). <strong>AUS501</strong> is the CB Financial Services (UK) register for FY25 (1 Jul 2024 – 30 Jun 2025); accounting depreciation is computed on a day-count basis. UK capital allowances (pooled) are a follow-up — the tax register is a placeholder for AUS501.</p>
         </div>
       </div>
     </section>
@@ -183,6 +186,7 @@
 
   <div class="toast" id="toast"></div>
   <script src="data-aus155.js?v=16"></script>
-  <script src="app.js?v=16"></script>
+  <script src="data-aus501.js?v=1"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>

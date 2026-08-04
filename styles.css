@@ -40,6 +40,13 @@ body {
 .app-header h1 { margin: 0; font-size: 1.25rem; }
 .app-header .sub { font-size: 0.82rem; opacity: 0.85; margin-top: 2px; }
 .app-header .company { text-align: right; font-size: 0.85rem; opacity: 0.95; }
+.entity-switch { margin-top: 6px; display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.entity-switch label { font-size: 0.72rem; opacity: 0.85; }
+.entity-switch select {
+  background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 6px; padding: 3px 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+}
+.entity-switch select option { color: #0f172a; }
 
 .tabs {
   display: flex;
