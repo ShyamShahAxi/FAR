@@ -1193,7 +1193,11 @@ function switchEntity(code) {
   if (!code || code === activeEntityCode()) return;
   snapshotActiveEntity();
   const store = loadEntityStore();
-  if (store[code]) {
+  const bundled = bundledFor(code);
+  // Prefer a newer bundled dataset over a stale archived working copy.
+  if (bundled && (!store[code] || (bundled.version && bundled.version !== store[code].version))) {
+    applyBundledDataset(bundled);
+  } else if (store[code]) {
     const e = store[code];
     assets = JSON.parse(JSON.stringify(e.assets || []));
     settings = Object.assign({}, defaultSettings, e.settings || {});
