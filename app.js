@@ -241,11 +241,14 @@ function buildSchedule(a, kind, asOf) {
     }
 
     // One-off accounting depreciation adjustment (FX / catch-up / impairment),
-    // applied in the reporting financial year only and independent of the base —
-    // used for reconciling lines (e.g. fixed-asset register to GL on
-    // foreign-currency assets), so the adjustment shows in the depreciation column.
-    if (kind === 'acct' && a.acctDepAdjustment && horizon >= fyStart && horizon <= fyEnd) {
-      charge += num(a.acctDepAdjustment);
+    // applied in a single financial year and independent of the base — used for
+    // reconciling lines (e.g. fixed-asset register to GL on foreign-currency
+    // assets), so the adjustment shows in the depreciation column. It applies in
+    // the FY of acctDepAdjDate if set, otherwise the reporting FY (so it stays put
+    // when the register rolls forward to a later year).
+    if (kind === 'acct' && a.acctDepAdjustment) {
+      const adjEnd = a.acctDepAdjDate ? fyEndFor(parseDate(a.acctDepAdjDate)) : fyEndFor(horizon);
+      if (adjEnd && fyEnd.getTime() === adjEnd.getTime()) charge += num(a.acctDepAdjustment);
     }
 
     accumulated += charge;
@@ -928,7 +931,7 @@ function blankAsset() {
     supplier: '', invoice: '', acquisitionDate: toISO(new Date()),
     purchaseCost: '', installationCost: '', otherCost: '',
     acctMethod: 'straight-line', usefulLife: 5, residualValue: '', acctRate: '',
-    openingDate: '', openingCost: '', openingAccDep: '', acctDepAdjustment: '',
+    openingDate: '', openingCost: '', openingAccDep: '', acctDepAdjustment: '', acctDepAdjDate: '',
     taxCostOverride: '', taxMethod: 'diminishing-value', taxLife: '', taxRate: 30, taxInitialAllowance: '',
     disposed: false, disposalDate: '', disposalProceeds: '', notes: '',
   };
@@ -979,7 +982,8 @@ function openAsset(id) {
       <div class="field"><label>Opening cost (gross)</label><input id="f-openingCost" type="number" step="0.01" value="${esc(g('openingCost'))}"></div>
       <div class="field"><label>Opening accumulated depreciation</label><input id="f-openingAccDep" type="number" step="0.01" value="${esc(g('openingAccDep'))}"></div>
       <div class="field full"><p class="hint-text" style="margin:0">Set an opening date to bring the asset forward at its net book value (opening cost − opening accumulated depreciation) as at that date, depreciating only from then over the remaining useful life above. Use to tie a register to an opening trial balance without re-deriving the full history.</p></div>
-      <div class="field"><label>Depreciation adjustment (this FY) <span class="hint-text">(one-off FX / catch-up / impairment)</span></label><input id="f-acctDepAdjustment" type="number" step="0.01" value="${esc(g('acctDepAdjustment'))}"></div>
+      <div class="field"><label>Depreciation adjustment <span class="hint-text">(one-off FX / catch-up / impairment)</span></label><input id="f-acctDepAdjustment" type="number" step="0.01" value="${esc(g('acctDepAdjustment'))}"></div>
+      <div class="field"><label>Adjustment date <span class="hint-text">(FY the adjustment applies to)</span></label><input id="f-acctDepAdjDate" type="date" value="${esc(g('acctDepAdjDate'))}"></div>
       <div class="field full"><p class="hint-text" style="margin:0">A one-off amount added to the reporting-year depreciation charge, independent of cost — for reconciling lines such as an FX revaluation of foreign-currency assets, a catch-up, or an impairment.</p></div>
 
       <div class="form-section-title">Tax depreciation / capital allowances</div>
@@ -1039,6 +1043,7 @@ function saveAsset() {
     openingCost: val('f-openingCost'),
     openingAccDep: val('f-openingAccDep'),
     acctDepAdjustment: val('f-acctDepAdjustment'),
+    acctDepAdjDate: val('f-acctDepAdjDate'),
     taxCostOverride: val('f-taxCostOverride'),
     taxMethod: val('f-taxMethod'),
     taxRate: val('f-taxRate'),
