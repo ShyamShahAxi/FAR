@@ -723,6 +723,7 @@ function renderTaxPool() {
 }
 
 function renderRegister(kind) {
+  if (kind === 'tax') { const sg = $('#tax-sg-legend'); if (sg) sg.style.display = settings.taxRegime === 'uk-pool' ? 'none' : ''; }
   if (kind === 'tax' && settings.taxRegime === 'uk-pool' && settings.taxPool) { renderTaxPool(); return; }
   const wrap = $('#' + kind + '-wrap');
   if (!wrap) return; // stale/cached HTML guard
