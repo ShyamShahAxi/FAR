@@ -1,5 +1,5 @@
 window.AUS501 = {
-    "version":  "AUS501-2025-06-30.11",
+    "version":  "AUS501-2025-06-30.12",
     "settings":  {
                      "companyName":  "CB Financial Services Limited (UK) - AUS501",
                      "currency":  "$",
@@ -2266,6 +2266,41 @@ window.AUS501 = {
                        "disposalDate":  "",
                        "disposalProceeds":  "",
                        "notes":  "FY26 FX on computer equipment (register historic rate vs GL revalued), shown as a depreciation adjustment."
+                   },
+                   {
+                       "id":  "AUS501-FX-CE25",
+                       "tag":  "FX-CE-FY25",
+                       "category":  "140100-Computer Equipment",
+                       "description":  "FX revaluation - register to GL, FY25 (computer additions)",
+                       "location":  "United Kingdom-AUS501",
+                       "department":  "",
+                       "custodian":  "",
+                       "wipCategory":  "",
+                       "inServiceDate":  "",
+                       "acquisitionDate":  "2024-07-01",
+                       "supplier":  "",
+                       "invoice":  "",
+                       "purchaseCost":  "-350.39",
+                       "installationCost":  "",
+                       "otherCost":  "",
+                       "acctMethod":  "straight-line",
+                       "usefulLife":  3,
+                       "residualValue":  "0",
+                       "acctRate":  "",
+                       "openingDate":  "",
+                       "openingCost":  "",
+                       "openingAccDep":  "",
+                       "acctDepAdjustment":  "-350.39",
+                       "acctDepAdjDate":  "2025-06-30",
+                       "taxCostOverride":  "",
+                       "taxMethod":  "straight-line",
+                       "taxRate":  "",
+                       "taxLife":  "3",
+                       "taxInitialAllowance":  "0",
+                       "disposed":  false,
+                       "disposalDate":  "",
+                       "disposalProceeds":  "",
+                       "notes":  "FY25 FX on computer additions (register 10,224.91 vs GL 9,874.52): reduces additions with an offsetting depreciation credit so the tax pool ties; net NBV unchanged."
                    }
                ],
     "leases":  [
