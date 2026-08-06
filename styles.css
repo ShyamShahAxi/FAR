@@ -48,6 +48,14 @@ body {
 }
 .entity-switch select option { color: #0f172a; }
 
+/* Locked (finalised) entity/year — grey out mutating controls; the lock/unlock
+   button, exports, entity switch and register navigation stay active. */
+body.locked #btn-add, body.locked #btn-add-2, body.locked #btn-import,
+body.locked #btn-sample, body.locked #btn-aus155, body.locked #btn-aus501,
+body.locked #btn-clear, body.locked #btn-save-settings, body.locked #modal-save {
+  opacity: 0.45; pointer-events: none;
+}
+
 .tabs {
   display: flex;
   gap: 4px;
