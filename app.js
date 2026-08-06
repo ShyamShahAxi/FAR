@@ -20,6 +20,7 @@ const defaultSettings = {
   fyEndDay: 30,
   reportingDate: null, // ISO yyyy-mm-dd ; null => today
   dtRate: 17,      // deferred-tax rate % (Singapore corporate tax 17%)
+  locked: false,   // when true the entity/year is finalised — edits are blocked
 };
 
 let settings = loadSettings();
@@ -1018,6 +1019,7 @@ function openAsset(id) {
 function closeModal() { $('#modal').classList.remove('open'); editingId = null; }
 
 function saveAsset() {
+  if (settings.locked) { toast('Year is locked — unlock to edit.'); return; }
   const val = id => { const el = $('#' + id); return el ? el.value : ''; };
   const rec = {
     id: editingId || uid(),
@@ -1071,6 +1073,7 @@ function saveAsset() {
 }
 
 function deleteAsset(id) {
+  if (settings.locked) { toast('Year is locked — unlock to delete.'); return; }
   const a = assets.find(x => x.id === id);
   if (!a) return;
   if (!confirm(`Delete asset “${a.tag || a.description || id}”? This cannot be undone.`)) return;
@@ -1139,6 +1142,7 @@ function download(name, content, type) {
 }
 
 function importJSON(file) {
+  if (settings.locked) { toast('Year is locked — unlock to import.'); return; }
   const reader = new FileReader();
   reader.onload = () => {
     try {
@@ -1160,6 +1164,7 @@ function importJSON(file) {
 }
 
 function loadSample() {
+  if (settings.locked) { toast('Year is locked — unlock first.'); return; }
   if (assets.length && !confirm('Replace current data with the sample register?')) return;
   assets = sampleData();
   saveAssets();
@@ -1169,6 +1174,7 @@ function loadSample() {
 }
 
 function clearAll() {
+  if (settings.locked) { toast('Year is locked — unlock first.'); return; }
   if (!confirm('Delete ALL assets? This cannot be undone.')) return;
   assets = [];
   saveAssets();
@@ -1253,6 +1259,7 @@ function renderEntitySelector() {
 }
 
 function loadAUS155() {
+  if (settings.locked) { toast('Year is locked — unlock first.'); return; }
   const data = window.AUS155;
   if (!data || !Array.isArray(data.assets)) { toast('AUS155 dataset not found.'); return; }
   if (assets.length && !confirm('Load the Axi AUS155 (Singapore) register into the AUS155 entity?')) return;
@@ -1265,6 +1272,7 @@ function loadAUS155() {
 }
 
 function loadAUS501() {
+  if (settings.locked) { toast('Year is locked — unlock first.'); return; }
   const data = window.AUS501;
   if (!data || !Array.isArray(data.assets)) { toast('AUS501 dataset not found.'); return; }
   if (assets.length && !confirm('Load the CB Financial Services (UK) AUS501 register into the AUS501 entity?')) return;
@@ -1298,9 +1306,19 @@ function applySettingsToUI() {
   $('#s-fyEndDay').value = settings.fyEndDay;
   $('#s-reportingDate').value = settings.reportingDate || toISO(new Date());
   if ($('#s-dtRate')) $('#s-dtRate').value = settings.dtRate;
+
+  // Lock (finalised) state — per entity/year.
+  document.body.classList.toggle('locked', !!settings.locked);
+  const lb = $('#btn-lock');
+  if (lb) { lb.textContent = settings.locked ? 'Unlock year' : 'Lock year'; lb.classList.toggle('danger', !settings.locked); lb.classList.toggle('primary', !!settings.locked); }
+  const banner = $('#lock-banner');
+  if (banner) banner.innerHTML = settings.locked
+    ? `<div class="banner warn" style="margin:0 0 16px">🔒 <strong>${esc(activeEntityCode())} — year to ${esc(toISO(reportingDate()))} is locked</strong> (finalised). Editing, imports and settings changes are blocked. Unlock in Data &amp; Settings.</div>`
+    : '';
 }
 
 function saveSettingsFromUI() {
+  if (settings.locked) { toast('Year is locked — unlock to change settings.'); return; }
   settings.companyName = $('#s-companyName').value.trim() || 'Company';
   settings.currency = $('#s-currency').value || '$';
   settings.fyEndMonth = parseInt($('#s-fyEndMonth').value, 10) || 6;
@@ -1391,6 +1409,11 @@ function wire() {
   const esel = $('#entity-select'); if (esel) esel.addEventListener('change', e => switchEntity(e.target.value));
   $('#btn-clear').addEventListener('click', clearAll);
   $('#btn-save-settings').addEventListener('click', saveSettingsFromUI);
+  const lk = $('#btn-lock'); if (lk) lk.addEventListener('click', () => {
+    settings.locked = !settings.locked;
+    saveSettings(); snapshotActiveEntity(); applySettingsToUI(); renderAll();
+    toast(settings.locked ? 'Year locked (finalised)' : 'Year unlocked');
+  });
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 }
@@ -1406,7 +1429,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const data = bundledFor(activeEntityCode()) || window.AUS155;
   const bundledVer = data && data.version;
   const storedVer = localStorage.getItem(DATA_VERSION_KEY);
-  if (data && Array.isArray(data.assets) &&
+  // Don't auto-overwrite a locked (finalised) entity with a bundled update.
+  if (!settings.locked && data && Array.isArray(data.assets) &&
       (!assets.length || (bundledVer && bundledVer !== storedVer))) {
     applyBundledDataset(data);
   }
