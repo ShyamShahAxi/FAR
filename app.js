@@ -21,6 +21,8 @@ const defaultSettings = {
   reportingDate: null, // ISO yyyy-mm-dd ; null => today
   dtRate: 17,      // deferred-tax rate % (Singapore corporate tax 17%)
   locked: false,   // when true the entity/year is finalised — edits are blocked
+  taxRegime: 'sg', // 'sg' = per-asset capital allowances (default); 'uk-pool' = UK pooled WDA/AIA
+  taxPool: null,   // UK pool config: { openingWDV, aiaCapGBP, wdaRate, years:[{fy,fxRate,addSoftware,addComputer,addRD,disposals}] }
 };
 
 let settings = loadSettings();
@@ -614,7 +616,65 @@ function registerGroupCats(kind) {
   return Array.from(set);
 }
 
+/* =============================================================
+   UK POOLED CAPITAL ALLOWANCES (main plant & machinery pool)
+   Roll-forward from a historical opening WDV: each year adds the
+   accounting capex, gives a 100% R&D allowance and AIA (capped at
+   £1m × the year's FX rate), then a writing-down allowance (WDA)
+   at the pool rate (18%) on the reducing balance.
+   ============================================================= */
+function taxPoolSchedule() {
+  const tp = settings.taxPool;
+  if (!tp || !Array.isArray(tp.years)) return null;
+  const capGBP = num(tp.aiaCapGBP), wdaRate = num(tp.wdaRate) / 100;
+  let opening = num(tp.openingWDV);
+  return tp.years.map(y => {
+    const addSoftware = num(y.addSoftware), addComputer = num(y.addComputer), addRD = num(y.addRD), disposals = num(y.disposals), fx = num(y.fxRate) || 1;
+    const poolAdditions = addSoftware + addComputer;         // qualifying for AIA/WDA (R&D is 100% written off, net nil to the pool)
+    const aia = Math.min(capGBP * fx, Math.max(0, poolAdditions));
+    const beforeWDA = opening + poolAdditions - disposals - aia;
+    const wda = wdaRate * Math.max(0, beforeWDA);
+    const closing = beforeWDA - wda;
+    const row = { fy: y.fy, fx, opening, addSoftware, addRD, addComputer, disposals, rd: addRD, aia, wda, closing };
+    opening = closing;
+    return row;
+  });
+}
+
+function renderTaxPool() {
+  const wrap = $('#tax-wrap'); if (!wrap) return;
+  const rows = taxPoolSchedule();
+  const lbl = $('#tax-fy-label'); if (lbl) lbl.textContent = 'UK main plant & machinery pool — writing-down allowances (18%), AIA (£' + (num(settings.taxPool.aiaCapGBP) / 1e6) + 'm cap) and R&D';
+  if (!rows || !rows.length) { wrap.innerHTML = '<div class="card" style="padding:14px 18px"><p class="legend" style="margin:0">No UK tax pool configured for this entity.</p></div>'; return; }
+  const rate = num(settings.dtRate) / 100;
+  const cols = rows.map(r => `<th class="num">${esc(r.fy)}</th>`).join('');
+  const line = (label, key, sign) => `<tr><td>${label}</td>` +
+    rows.map(r => { const v = (sign || 1) * num(r[key]); return `<td class="num ${v < 0 ? 'neg' : ''}">${v === 0 ? '–' : fmtSigned(v)}</td>`; }).join('') + '</tr>';
+  const bold = (label, key) => `<tr style="font-weight:700;background:#f8fafc"><td>${label}</td>` +
+    rows.map(r => `<td class="num">${fmtSigned(num(r[key]))}</td>`).join('') + '</tr>';
+  wrap.innerHTML = `
+    <div class="card" style="padding:14px 18px;margin-bottom:14px"><p class="legend" style="margin:0">
+      UK capital allowances are pooled, not per-asset. Additions ties to the accounting register capex; the <strong>R&amp;D</strong> lines are a 100% first-year allowance (net nil to the pool); <strong>AIA</strong> is the Annual Investment Allowance capped at £${(num(settings.taxPool.aiaCapGBP) / 1e6)}m (× the year's GBP→USD rate); <strong>WDA</strong> is ${num(settings.taxPool.wdaRate)}% of the reducing balance. Opening FY is the historical pool written-down value.</p></div>
+    <div class="table-wrap"><table class="comp-table">
+      <thead><tr><th>UK plant &amp; machinery pool</th>${cols}</tr></thead>
+      <tbody>
+        ${bold('Opening WDV', 'opening')}
+        ${line('Additions — software', 'addSoftware')}
+        ${line('Additions — software (R&amp;D)', 'addRD')}
+        ${line('Additions — computer', 'addComputer')}
+        ${line('Disposals', 'disposals', -1)}
+        ${line('R&amp;D allowance (100%)', 'rd', -1)}
+        ${line('AIA (£' + (num(settings.taxPool.aiaCapGBP) / 1e6) + 'm cap)', 'aia', -1)}
+        ${line('WDA (' + num(settings.taxPool.wdaRate) + '%)', 'wda', -1)}
+        ${bold('Closing WDV', 'closing')}
+      </tbody>
+      <tfoot><tr><td>Deferred tax on pool @ ${pct(settings.dtRate)} <span class="hint-text">(WDV × rate)</span></td>${rows.map(r => `<td class="num">${fmtSigned(-r.closing * rate)}</td>`).join('')}</tr></tfoot>
+    </table></div>
+    <p class="legend">FX: ${rows.map(r => esc(r.fy) + ' ' + r.fx).join(' · ')}. The full deferred-tax position compares the pool WDV to the accounting net book value; the accounting register is on the Accounting tab.</p>`;
+}
+
 function renderRegister(kind) {
+  if (kind === 'tax' && settings.taxRegime === 'uk-pool' && settings.taxPool) { renderTaxPool(); return; }
   const wrap = $('#' + kind + '-wrap');
   if (!wrap) return; // stale/cached HTML guard
   const fyEnd = fyEndFor(reportingDate());

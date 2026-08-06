@@ -1,12 +1,36 @@
 window.AUS501 = {
-    "version":  "AUS501-2025-06-30.9",
+    "version":  "AUS501-2025-06-30.10",
     "settings":  {
                      "companyName":  "CB Financial Services Limited (UK) - AUS501",
                      "currency":  "$",
                      "fyEndMonth":  6,
                      "fyEndDay":  30,
                      "reportingDate":  "2026-06-30",
-                     "dtRate":  25
+                     "dtRate":  25,
+                     "taxRegime":  "uk-pool",
+                     "taxPool":  {
+                                     "openingWDV":  482040,
+                                     "aiaCapGBP":  1000000,
+                                     "wdaRate":  18,
+                                     "years":  [
+                                                   {
+                                                       "fy":  "FY25",
+                                                       "fxRate":  1.293032,
+                                                       "addSoftware":  6313694,
+                                                       "addComputer":  9875,
+                                                       "addRD":  308307,
+                                                       "disposals":  3630254
+                                                   },
+                                                   {
+                                                       "fy":  "FY26",
+                                                       "fxRate":  1.32605,
+                                                       "addSoftware":  7980318,
+                                                       "addComputer":  27082,
+                                                       "addRD":  0,
+                                                       "disposals":  2991747
+                                                   }
+                                               ]
+                                 }
                  },
     "assets":  [
                    {
