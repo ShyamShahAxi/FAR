@@ -146,6 +146,11 @@
             <div class="field"><label>Financial year-end day</label><input id="s-fyEndDay" type="number" min="1" max="31"></div>
             <div class="field"><label>Deferred tax rate %</label><input id="s-dtRate" type="number" step="0.01" min="0" max="100" placeholder="e.g. 17"></div>
           </div>
+          <div class="form-grid" id="uk-pool-settings" style="margin-top:14px">
+            <div class="field full"><label style="color:var(--brand-dark)">UK capital allowances (pooled)</label></div>
+            <div class="field"><label>AIA cap (GBP)</label><input id="s-aiaCapGBP" type="number" step="1000" min="0" placeholder="1000000"></div>
+            <div class="field"><label>AIA FX rate (GBP&rarr;USD)</label><input id="s-aiaFxRate" type="number" step="0.0001" min="0" placeholder="e.g. 1.32605"></div>
+          </div>
           <div style="margin-top:16px"><button class="primary" id="btn-save-settings">Save settings</button></div>
         </div>
         <div class="card">
@@ -193,7 +198,7 @@
 
   <div class="toast" id="toast"></div>
   <script src="data-aus155.js?v=16"></script>
-  <script src="data-aus501.js?v=10"></script>
-  <script src="app.js?v=22"></script>
+  <script src="data-aus501.js?v=11"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>

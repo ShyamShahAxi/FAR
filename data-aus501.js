@@ -1,5 +1,5 @@
 window.AUS501 = {
-    "version":  "AUS501-2025-06-30.10",
+    "version":  "AUS501-2025-06-30.11",
     "settings":  {
                      "companyName":  "CB Financial Services Limited (UK) - AUS501",
                      "currency":  "$",
@@ -8,28 +8,22 @@ window.AUS501 = {
                      "reportingDate":  "2026-06-30",
                      "dtRate":  25,
                      "taxRegime":  "uk-pool",
+                     "aiaCapGBP":  1000000,
+                     "aiaFxRate":  1.32605,
                      "taxPool":  {
-                                     "openingWDV":  482040,
-                                     "aiaCapGBP":  1000000,
-                                     "wdaRate":  18,
-                                     "years":  [
-                                                   {
-                                                       "fy":  "FY25",
-                                                       "fxRate":  1.293032,
-                                                       "addSoftware":  6313694,
-                                                       "addComputer":  9875,
-                                                       "addRD":  308307,
-                                                       "disposals":  3630254
-                                                   },
-                                                   {
-                                                       "fy":  "FY26",
-                                                       "fxRate":  1.32605,
-                                                       "addSoftware":  7980318,
-                                                       "addComputer":  27082,
-                                                       "addRD":  0,
-                                                       "disposals":  2991747
-                                                   }
-                                               ]
+                                     "startFY":  2025,
+                                     "mainOpeningWDV":  482040,
+                                     "specialOpeningWDV":  3404,
+                                     "mainRate":  18,
+                                     "specialRate":  6,
+                                     "rd":  {
+                                                "2025":  308307,
+                                                "2026":  0
+                                            },
+                                     "fx":  {
+                                                "2025":  1.293032,
+                                                "2026":  1.32605
+                                            }
                                  }
                  },
     "assets":  [
