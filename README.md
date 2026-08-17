@@ -28,6 +28,8 @@ Every figure is computed **as at the reporting date** you set. Set the reporting
 - **Reducing-balance / diminishing-value:** `rate% × opening carrying amount`, pro-rated in the first year. Accounting depreciation never reduces the carrying amount below the residual value; tax depreciates toward nil.
 - **Initial allowance (tax only):** an optional extra first-year deduction of `cost × initial-allowance%`. An initial allowance of **100%** models a full one-year write-off (e.g. Singapore S19A for computers and software).
 - **Tax is not time-apportioned:** capital allowances give a **full** annual allowance in each year of assessment the asset is in use — from the in-service year, with no day-count pro-rating of the acquisition-year part period (accounting depreciation still pro-rates). WIP claims nothing until it is placed in service.
+- **Tax regimes:** each entity sets `taxRegime` in its settings — `sg` (per-asset capital allowances, the default), `uk-pool` (pooled WDA/AIA with main and special pools) or `mirror`.
+- **Mirror regime (`mirror`):** the entity claims no separate tax basis, so the tax register *is* the accounting register — same cost, method, useful life, residual value and day-count proration. Any per-asset tax cost base, method, rate, life or initial allowance is ignored (the values are retained, and take effect again if the entity later moves to a capital-allowance regime), and the asset form hides those inputs. Tax WDV equals accounting NBV, so the temporary difference and deferred tax are nil.
 - **Deferred tax:** shown per category in the tax register and totalled on the dashboard as `(accounting NBV − tax WDV) × rate`. Accelerated tax write-off makes NBV > TWDV, i.e. a deferred tax **liability**; the rate defaults to 17% (Singapore) and is configurable in Data & Settings.
 - **Disposal:** the remaining carrying amount at the disposal date is removed. Accounting gain/(loss) = proceeds − NBV; tax balancing adjustment = proceeds − TWDV (positive = balancing charge, negative = balancing allowance).
 
@@ -39,13 +41,19 @@ The engine builds a full year-by-year schedule per asset (expand the **Schedule*
 
 1. Open the site (or `index.html` locally in a browser).
 2. Go to **Data & Settings** → set company name, currency, financial-year end and reporting date.
-3. Click **Load Axi AUS155 (Singapore) register** to load real data, **Load generic sample** to explore, or **+ Add Asset** to enter your own.
+3. Click **Load AUS155 (Singapore) register**, **Load AUS501 (UK) register** or **Load AUS005 (AFSPL) register** to load an entity, **Load generic sample** to explore, or **+ Add Asset** to enter your own. Switch between entities with the **Entity** selector in the header — each keeps its own register, settings, reporting date and lock state.
 4. Review the **Accounting Register** and **Tax Register** tabs; export to CSV for your workpapers.
 5. Use **Backup (JSON)** regularly — data lives only in this browser.
 
 ### Bundled AUS155 dataset
 
 `data-aus155.js` contains the real **AxiCorp Pte Ltd (Singapore)** accounting register as at **30 June 2026** — 104 assets across Computer Equipment, Furniture & Fittings, Leasehold Improvements, Software Development and Asset WIP, imported from the Xero asset export. Assets are held at their functional-currency cost and depreciated straight-line (Prime Cost) over their useful lives from first-use date; the tax register mirrors the Prime Cost method and lives from the matching tax export. The engine's recomputed net book value ties to the source register's closing WDV to within a cent. WIP is carried at cost with no depreciation until placed in service; when a WIP item goes into service it moves to its operating category (e.g. Software Development) from its first-use date. Use the register's financial-year selector to view earlier years.
+
+### Bundled AUS005 dataset (AFSPL)
+
+`data-aus005.js` sets up **AxiCorp Financial Services Pty Ltd (Australia)** — "AFSPL" — as an entity for **FY25** (1 Jul 2024 – 30 Jun 2025), in AUD with a 30% tax rate. Its tax register uses the `mirror` regime, so tax depreciation equals accounting depreciation and no deferred tax arises.
+
+> **The asset register is empty** — this is the entity scaffold only. Populate `assets` from the AFSPL fixed-asset/GL export (the same shape as `data-aus155.js` and `data-aus501.js`), or import a JSON backup from **Data & Settings**. The company name is an assumption; correct it in **Data & Settings** if AUS005 trades under a different name.
 
 ### Work in progress → in-service (effective-dated reclassification)
 
