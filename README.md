@@ -28,7 +28,9 @@ Every figure is computed **as at the reporting date** you set. Set the reporting
 - **Reducing-balance / diminishing-value:** `rate% × opening carrying amount`, pro-rated in the first year. Accounting depreciation never reduces the carrying amount below the residual value; tax depreciates toward nil.
 - **Initial allowance (tax only):** an optional extra first-year deduction of `cost × initial-allowance%`. An initial allowance of **100%** models a full one-year write-off (e.g. Singapore S19A for computers and software).
 - **Tax is not time-apportioned:** capital allowances give a **full** annual allowance in each year of assessment the asset is in use — from the in-service year, with no day-count pro-rating of the acquisition-year part period (accounting depreciation still pro-rates). WIP claims nothing until it is placed in service.
-- **Tax regimes:** each entity sets `taxRegime` in its settings — `sg` (per-asset capital allowances, the default), `uk-pool` (pooled WDA/AIA with main and special pools) or `mirror`.
+- **Tax regimes:** each entity sets `taxRegime` in its settings — `sg` (per-asset capital allowances, the default), `au` (per-asset Div 40 allowances), `uk-pool` (pooled WDA/AIA with main and special pools) or `mirror`.
+- **Australian regime (`au`):** per-asset prime-cost allowances **apportioned by days held**, unlike Singapore where a full annual allowance is claimed regardless of when the asset entered service. Tax effective lives are independent of the accounting useful lives, so a real temporary difference arises.
+- **Opening balances:** either register can be brought forward at a written-down value instead of re-deriving its full history — `openingDate`/`openingCost`/`openingAccDep` for accounting, `taxOpeningDate`/`taxOpeningCost`/`taxOpeningAccDep` for tax. Useful when the tax base carried forward from the prior return cannot be reproduced from cost (different first-year day counts, prior-year elections). A prime-cost **rate** always applies to the full cost, so bringing a balance forward never changes the annual allowance.
 - **Mirror regime (`mirror`):** the entity claims no separate tax basis, so the tax register *is* the accounting register — same cost, method, useful life, residual value and day-count proration. Any per-asset tax cost base, method, rate, life or initial allowance is ignored (the values are retained, and take effect again if the entity later moves to a capital-allowance regime), and the asset form hides those inputs. Tax WDV equals accounting NBV, so the temporary difference and deferred tax are nil.
 - **Deferred tax:** shown per category in the tax register and totalled on the dashboard as `(accounting NBV − tax WDV) × rate`. Accelerated tax write-off makes NBV > TWDV, i.e. a deferred tax **liability**; the rate defaults to 17% (Singapore) and is configurable in Data & Settings.
 - **Disposal:** the remaining carrying amount at the disposal date is removed. Accounting gain/(loss) = proceeds − NBV; tax balancing adjustment = proceeds − TWDV (positive = balancing charge, negative = balancing allowance).
@@ -51,9 +53,23 @@ The engine builds a full year-by-year schedule per asset (expand the **Schedule*
 
 ### Bundled AUS005 dataset (AFSPL)
 
-`data-aus005.js` sets up **AxiCorp Financial Services Pty Ltd (Australia)** — "AFSPL" — as an entity for **FY25** (1 Jul 2024 – 30 Jun 2025), in AUD with a 30% tax rate. Its tax register uses the `mirror` regime, so tax depreciation equals accounting depreciation and no deferred tax arises.
+`data-aus005.js` contains the real **AxiCorp Financial Services Pty Ltd (Australia)** — "AFSPL" — register for **FY25** (1 Jul 2024 – 30 Jun 2025), 268 assets across Computer Equipment, Furniture & Equipment, Fixtures & Fittings, Leasehold Improvement, Software Development, Asset WIP, Trademarks, Licences and Goodwill. It is generated from the two Sage exports for the period (accounting and tax) and reports in USD at a 30% tax rate.
 
-> **The asset register is empty** — this is the entity scaffold only. Populate `assets` from the AFSPL fixed-asset/GL export (the same shape as `data-aus155.js` and `data-aus501.js`), or import a JSON backup from **Data & Settings**. The company name is an assumption; correct it in **Data & Settings** if AUS005 trades under a different name.
+**Accounting** is recomputed in full from each asset's cost and first-use date on the prime-cost basis over its useful life, so the register carries genuine year-by-year history and the financial-year selector works back to FY14.
+
+**Tax** is a separate basis under the `au` regime, brought forward at 1 Jul 2024 via the `taxOpening*` fields. It diverges from accounting in three ways that matter:
+
+| | Accounting | Tax |
+|---|---|---|
+| Leasehold improvements, fixtures | 5 years | **40 years** (2.5% prime cost) |
+| Assets under Temporary Full Expensing / Instant Asset Write-Off | still depreciating | **written off in full**, nil TWDV |
+| First-year apportionment | days held | days held (Div 40) |
+
+Tax written-down value therefore *exceeds* accounting net book value — a temporary difference of **−203,084**, i.e. a deferred tax **asset** of about **60,925** at 30%, driven by the 40-year tax life on the office fit-out.
+
+The recomputed register ties to the source exports within a few cents on every line: gross cost exact, tax written-down value within 2c, FY25 capital allowances within 2c, accounting net book value within 9c across $5.74m. The one visible per-asset difference is `A2200061` (11c), where the export posts a 22c FY25 *cost* adjustment that this model folds into the asset's original cost instead.
+
+> Confirm the effective lives, write-off elections and rates against current Australian tax law before relying on the figures.
 
 ### Work in progress → in-service (effective-dated reclassification)
 
