@@ -21,7 +21,8 @@ const defaultSettings = {
   reportingDate: null, // ISO yyyy-mm-dd ; null => today
   dtRate: 17,      // deferred-tax rate % (Singapore corporate tax 17%)
   locked: false,   // when true the entity/year is finalised — edits are blocked
-  // 'sg'      = per-asset capital allowances (default)
+  // 'sg'      = per-asset capital allowances, not time-apportioned (default)
+  // 'au'      = per-asset Div 40 allowances, apportioned by days held
   // 'uk-pool' = UK pooled WDA/AIA
   // 'mirror'  = tax register follows accounting exactly (no separate tax basis)
   taxRegime: 'sg',
@@ -171,34 +172,42 @@ function buildSchedule(a, kind, asOf) {
   const acq = parseDate(a.acquisitionDate);
   if (!acq) return { rows: [], error: 'No acquisition date' };
 
-  // Opening-balance (opening-WDV) mode — accounting only. The asset is brought
-  // forward at a net book value as at openingDate (= openingCost − openingAccDep),
-  // and only depreciation from that date is computed, over the remaining life in
-  // usefulLife. Lets a register tie to an opening trial balance without
-  // re-deriving each asset's full pre-opening history.
-  const opWDV = (kind === 'acct' && parseDate(a.openingDate)) ? parseDate(a.openingDate) : null;
+  // Opening-balance (opening-WDV) mode. The asset is brought forward at a written-
+  // down value as at the opening date (= opening cost − opening accumulated
+  // depreciation), and only depreciation from that date is computed. Lets a
+  // register tie to an opening trial balance (accounting) or to the written-down
+  // values carried forward from the prior tax return, without re-deriving each
+  // asset's full pre-opening history. Each register has its own opening fields, so
+  // an entity can bring the tax base forward while the accounting side keeps its
+  // full history (or vice versa).
+  const opWDV = parseDate(kind === 'acct' ? a.openingDate : a.taxOpeningDate) || null;
   const startDate = opWDV || acq;
 
   const disposal = a.disposed ? parseDate(a.disposalDate) : null;
   const horizon = asOf || reportingDate();
   const depStart = opWDV || depStartDate(a) || acq;   // depreciation begins here (in-service date)
 
-  let method, base, residual, lifeYears, rate, initialAllow;
+  // `gross` is the full cost an allowance RATE applies to; `base` is the carrying
+  // amount the schedule starts from (the two differ in opening-balance mode).
+  let method, gross, base, residual, lifeYears, rate, initialAllow, openAccDep;
   if (kind === 'acct') {
     method = a.acctMethod || 'straight-line';
-    base = opWDV ? (num(a.openingCost) - num(a.openingAccDep)) : acctCost(a);
+    gross = opWDV ? num(a.openingCost) : acctCost(a);
+    openAccDep = num(a.openingAccDep);
     residual = num(a.residualValue);
     lifeYears = num(a.usefulLife);
     rate = num(a.acctRate);
     initialAllow = 0;
   } else {
     method = a.taxMethod || 'prime-cost';
-    base = taxCost(a);
+    gross = opWDV ? num(a.taxOpeningCost) : taxCost(a);
+    openAccDep = num(a.taxOpeningAccDep);
     residual = 0; // tax written-down value depreciates toward nil
     lifeYears = num(a.taxLife);
     rate = num(a.taxRate);
     initialAllow = num(a.taxInitialAllowance);
   }
+  base = opWDV ? gross - openAccDep : gross;
 
   const lifeEnd = (method === 'straight-line' && lifeYears)
     ? endOfLife(a, depStart, 'straight-line', lifeYears)
@@ -206,7 +215,7 @@ function buildSchedule(a, kind, asOf) {
 
   const rows = [];
   let opening = 0;
-  let accumulated = opWDV ? num(a.openingAccDep) : 0;
+  let accumulated = opWDV ? openAccDep : 0;
   let fyEnd = fyEndFor(startDate);
   let carry = base;               // current book/written-down value
   let firstFY = true;
@@ -234,11 +243,12 @@ function buildSchedule(a, kind, asOf) {
     let frac = Math.min(1, depDays / daysInFY);
     const inServiceThisFY = depStart >= fyStart && depStart <= fyEnd;
 
-    // Tax (capital allowances) are NOT time-apportioned: a full annual
-    // allowance is claimed in each year of assessment the asset is in use,
-    // from the in-service YA — no pro-rating for the acquisition-year part
-    // period. (Accounting depreciation keeps the day-count proration above.)
-    if (kind === 'tax') frac = depDays > 0 ? 1 : 0;
+    // Under the Singapore regime capital allowances are NOT time-apportioned: a
+    // full annual allowance is claimed in each year of assessment the asset is in
+    // use, from the in-service YA — no pro-rating for the acquisition-year part
+    // period. Australia (Div 40) instead apportions by days held, exactly like
+    // accounting depreciation, so 'au' keeps the day-count fraction above.
+    if (kind === 'tax' && settings.taxRegime !== 'au') frac = depDays > 0 ? 1 : 0;
 
     opening = carry;
     const addition = firstFY ? base : 0;
@@ -248,7 +258,10 @@ function buildSchedule(a, kind, asOf) {
       if (method === 'straight-line' || method === 'prime-cost') {
         let annual;
         if (method === 'prime-cost' && rate) {
-          annual = base * (rate / 100);            // capital allowance % of cost
+          // Prime cost is a fixed % of the FULL cost every year — not of the
+          // carrying amount — so in opening-balance mode the rate still applies
+          // to gross cost, never to the brought-forward written-down value.
+          annual = gross * (rate / 100);           // capital allowance % of cost
         } else if (lifeYears) {
           annual = depreciable / lifeYears;        // straight-line over life
         } else {
@@ -745,6 +758,7 @@ function renderRegister(kind) {
   // Each regime gets its own explanatory legend above the tax register.
   if (kind === 'tax') {
     const sg = $('#tax-sg-legend'); if (sg) sg.style.display = settings.taxRegime === 'sg' ? '' : 'none';
+    const au = $('#tax-au-legend'); if (au) au.style.display = settings.taxRegime === 'au' ? '' : 'none';
     const mir = $('#tax-mirror-legend'); if (mir) mir.style.display = settings.taxRegime === 'mirror' ? '' : 'none';
   }
   if (kind === 'tax' && settings.taxRegime === 'uk-pool' && settings.taxPool) { renderTaxPool(); return; }
@@ -1128,6 +1142,9 @@ function openAsset(id) {
       <input type="hidden" id="f-taxRate" value="${esc(g('taxRate'))}">
       <input type="hidden" id="f-taxLife" value="${esc(g('taxLife'))}">
       <input type="hidden" id="f-taxInitialAllowance" value="${esc(g('taxInitialAllowance'))}">
+      <input type="hidden" id="f-taxOpeningDate" value="${esc(g('taxOpeningDate'))}">
+      <input type="hidden" id="f-taxOpeningCost" value="${esc(g('taxOpeningCost'))}">
+      <input type="hidden" id="f-taxOpeningAccDep" value="${esc(g('taxOpeningAccDep'))}">
       ` : `
       <div class="field"><label>Tax cost base <span class="hint-text">(blank = accounting cost)</span></label><input id="f-taxCostOverride" type="number" step="0.01" value="${esc(g('taxCostOverride'))}"></div>
       <div class="field"><label>Method</label>
@@ -1138,6 +1155,10 @@ function openAsset(id) {
       <div class="field"><label>Tax rate %</label><input id="f-taxRate" type="number" step="0.01" value="${esc(g('taxRate'))}" placeholder="e.g. 30"></div>
       <div class="field"><label>Prime-cost life (years) <span class="hint-text">(if no rate)</span></label><input id="f-taxLife" type="number" step="0.5" value="${esc(g('taxLife'))}"></div>
       <div class="field"><label>Initial allowance %</label><input id="f-taxInitialAllowance" type="number" step="0.01" value="${esc(g('taxInitialAllowance'))}" placeholder="optional first-year %"></div>
+      <div class="field"><label>Tax opening date <span class="hint-text">(WDV b/f; blank = full history)</span></label><input id="f-taxOpeningDate" type="date" value="${esc(g('taxOpeningDate'))}"></div>
+      <div class="field"><label>Tax opening cost</label><input id="f-taxOpeningCost" type="number" step="0.01" value="${esc(g('taxOpeningCost'))}"></div>
+      <div class="field"><label>Tax opening accumulated depn</label><input id="f-taxOpeningAccDep" type="number" step="0.01" value="${esc(g('taxOpeningAccDep'))}"></div>
+      <div class="field full"><p class="hint-text" style="margin:0">Set a tax opening date to bring the asset's written-down value forward from the prior return (tax opening cost − tax opening accumulated depreciation), computing allowances only from then. A prime-cost <em>rate</em> still applies to the full tax cost, so the annual allowance is unaffected by the brought-forward balance.</p></div>
       `}
 
       <div class="form-section-title">Disposal</div>
@@ -1193,6 +1214,9 @@ function saveAsset() {
     taxRate: val('f-taxRate'),
     taxLife: val('f-taxLife'),
     taxInitialAllowance: val('f-taxInitialAllowance'),
+    taxOpeningDate: val('f-taxOpeningDate'),
+    taxOpeningCost: val('f-taxOpeningCost'),
+    taxOpeningAccDep: val('f-taxOpeningAccDep'),
     disposed: $('#f-disposed').checked,
     disposalDate: val('f-disposalDate'),
     disposalProceeds: val('f-disposalProceeds'),
