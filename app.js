@@ -21,7 +21,10 @@ const defaultSettings = {
   reportingDate: null, // ISO yyyy-mm-dd ; null => today
   dtRate: 17,      // deferred-tax rate % (Singapore corporate tax 17%)
   locked: false,   // when true the entity/year is finalised — edits are blocked
-  taxRegime: 'sg', // 'sg' = per-asset capital allowances (default); 'uk-pool' = UK pooled WDA/AIA
+  // 'sg'      = per-asset capital allowances (default)
+  // 'uk-pool' = UK pooled WDA/AIA
+  // 'mirror'  = tax register follows accounting exactly (no separate tax basis)
+  taxRegime: 'sg',
   aiaCapGBP: 1000000,  // Annual Investment Allowance cap (GBP) — used by uk-pool
   aiaFxRate: 1,        // GBP→USD rate for the AIA cap (current/latest year)
   // UK pool config: { startFY, mainOpeningWDV, specialOpeningWDV, mainRate, specialRate,
@@ -106,7 +109,17 @@ function fyLabel(fyEnd) {
 /* Total capitalised accounting cost */
 function acctCost(a) { return num(a.purchaseCost) + num(a.installationCost) + num(a.otherCost); }
 /* Tax cost base (defaults to accounting cost when not overridden) */
-function taxCost(a) { return a.taxCostOverride !== '' && a.taxCostOverride != null ? num(a.taxCostOverride) : acctCost(a); }
+/* Tax cost base. Under the 'mirror' regime there is no separate tax basis, so
+   any per-asset override is ignored and the accounting cost is used. */
+function taxCost(a) {
+  if (settings.taxRegime === 'mirror') return acctCost(a);
+  return a.taxCostOverride !== '' && a.taxCostOverride != null ? num(a.taxCostOverride) : acctCost(a);
+}
+/* Effective tax depreciation method — the accounting method under 'mirror'. */
+function taxMethodOf(a) {
+  return settings.taxRegime === 'mirror'
+    ? (a.acctMethod || 'straight-line') : (a.taxMethod || 'prime-cost');
+}
 
 /* ---------- Work in progress / in-service ----------
    An asset may sit in a WIP holding category, carried at cost with no
@@ -150,6 +163,11 @@ function endOfLife(a, startDate, method, lifeYears) {
 
 /* Build a generic schedule. cfg carries method + params + costs. */
 function buildSchedule(a, kind, asOf) {
+  // 'mirror' regime: the entity claims no separate tax basis, so the tax
+  // schedule IS the accounting schedule — same cost, method, life, residual and
+  // day-count proration. Tax WDV then equals NBV and no temporary difference
+  // (and so no deferred tax) arises.
+  if (kind === 'tax' && settings.taxRegime === 'mirror') kind = 'acct';
   const acq = parseDate(a.acquisitionDate);
   if (!acq) return { rows: [], error: 'No acquisition date' };
 
@@ -570,6 +588,7 @@ function assetMovement(a, kind) {
 }
 
 function methodLabelFor(a, kind) {
+  if (kind === 'tax' && settings.taxRegime === 'mirror') kind = 'acct';
   if (kind === 'acct') {
     return a.acctMethod === 'reducing-balance'
       ? `Reducing balance ${pct(a.acctRate)}` : `Straight-line ${num(a.usefulLife)}y`;
@@ -723,7 +742,11 @@ function renderTaxPool() {
 }
 
 function renderRegister(kind) {
-  if (kind === 'tax') { const sg = $('#tax-sg-legend'); if (sg) sg.style.display = settings.taxRegime === 'uk-pool' ? 'none' : ''; }
+  // Each regime gets its own explanatory legend above the tax register.
+  if (kind === 'tax') {
+    const sg = $('#tax-sg-legend'); if (sg) sg.style.display = settings.taxRegime === 'sg' ? '' : 'none';
+    const mir = $('#tax-mirror-legend'); if (mir) mir.style.display = settings.taxRegime === 'mirror' ? '' : 'none';
+  }
   if (kind === 'tax' && settings.taxRegime === 'uk-pool' && settings.taxPool) { renderTaxPool(); return; }
   const wrap = $('#' + kind + '-wrap');
   if (!wrap) return; // stale/cached HTML guard
@@ -1098,6 +1121,14 @@ function openAsset(id) {
       <div class="field full"><p class="hint-text" style="margin:0">A one-off amount added to the reporting-year depreciation charge, independent of cost — for reconciling lines such as an FX revaluation of foreign-currency assets, a catch-up, or an impairment.</p></div>
 
       <div class="form-section-title">Tax depreciation / capital allowances</div>
+      ${settings.taxRegime === 'mirror' ? `
+      <div class="field full"><p class="hint-text" style="margin:0">This entity's tax register <strong>mirrors accounting</strong>, so there is no separate tax cost base, method, rate, life or initial allowance to enter — the accounting inputs above drive both registers. (Any values already stored are kept, and take effect again if the entity moves to a capital-allowance regime.)</p></div>
+      <input type="hidden" id="f-taxCostOverride" value="${esc(g('taxCostOverride'))}">
+      <input type="hidden" id="f-taxMethod" value="${esc(g('taxMethod'))}">
+      <input type="hidden" id="f-taxRate" value="${esc(g('taxRate'))}">
+      <input type="hidden" id="f-taxLife" value="${esc(g('taxLife'))}">
+      <input type="hidden" id="f-taxInitialAllowance" value="${esc(g('taxInitialAllowance'))}">
+      ` : `
       <div class="field"><label>Tax cost base <span class="hint-text">(blank = accounting cost)</span></label><input id="f-taxCostOverride" type="number" step="0.01" value="${esc(g('taxCostOverride'))}"></div>
       <div class="field"><label>Method</label>
         <select id="f-taxMethod">
@@ -1107,6 +1138,7 @@ function openAsset(id) {
       <div class="field"><label>Tax rate %</label><input id="f-taxRate" type="number" step="0.01" value="${esc(g('taxRate'))}" placeholder="e.g. 30"></div>
       <div class="field"><label>Prime-cost life (years) <span class="hint-text">(if no rate)</span></label><input id="f-taxLife" type="number" step="0.5" value="${esc(g('taxLife'))}"></div>
       <div class="field"><label>Initial allowance %</label><input id="f-taxInitialAllowance" type="number" step="0.01" value="${esc(g('taxInitialAllowance'))}" placeholder="optional first-year %"></div>
+      `}
 
       <div class="form-section-title">Disposal</div>
       <div class="field"><label><input type="checkbox" id="f-disposed" ${a.disposed ? 'checked' : ''}> Asset disposed</label></div>
@@ -1213,7 +1245,7 @@ function exportCSV(kind) {
       return [a.tag, a.description, a.category, a.wipCategory || '', a.inServiceDate || '', a.location, a.department, a.custodian, a.acquisitionDate,
         a.supplier, a.invoice, num(a.purchaseCost), num(a.installationCost), num(a.otherCost), acctCost(a),
         a.acctMethod, a.usefulLife, num(a.residualValue), num(a.acctRate),
-        taxCost(a), a.taxMethod, num(a.taxRate), a.taxLife, num(a.taxInitialAllowance),
+        taxCost(a), taxMethodOf(a), num(a.taxRate), a.taxLife, num(a.taxInitialAllowance),
         a.disposed ? 'Yes' : 'No', a.disposalDate, num(a.disposalProceeds),
         acct.accumulated.toFixed(2), acct.nbv.toFixed(2), tax.nbv.toFixed(2)];
     });
@@ -1230,7 +1262,7 @@ function exportCSV(kind) {
     rows = activeAssets().map(a => {
       const p = positionAt(a, 'tax');
       const addition = sameFYAcquisition(a) ? taxCost(a) : 0;
-      return [a.tag, a.description, a.taxMethod, taxCost(a), (p.openingThisFY - addition).toFixed(2), addition.toFixed(2),
+      return [a.tag, a.description, taxMethodOf(a), taxCost(a), (p.openingThisFY - addition).toFixed(2), addition.toFixed(2),
         p.chargeThisFY.toFixed(2), p.disposalRemoval.toFixed(2), (p.disposedInView ? 0 : p.nbv).toFixed(2)];
     });
   }
@@ -1313,7 +1345,7 @@ function applyBundledDataset(data) {
    short code taken from the dataset version (e.g. "AUS155-2026-…" → AUS155), so
    the header dropdown can switch between them. The active entity is snapshotted
    into the archive only when leaving it. */
-function bundledDatasets() { return [window.AUS155, window.AUS501].filter(d => d && Array.isArray(d.assets)); }
+function bundledDatasets() { return [window.AUS155, window.AUS501, window.AUS005].filter(d => d && Array.isArray(d.assets)); }
 function entityCodeOf(dataOrVer) {
   const v = typeof dataOrVer === 'string' ? dataOrVer : (dataOrVer && dataOrVer.version) || '';
   return v.split('-')[0] || '';
@@ -1392,6 +1424,21 @@ function loadAUS501() {
   renderAll();
   activateTab('acct');
   toast('AUS501 (UK) register loaded (' + assets.length + ' assets).');
+}
+
+function loadAUS005() {
+  if (settings.locked) { toast('Year is locked — unlock first.'); return; }
+  const data = window.AUS005;
+  if (!data || !Array.isArray(data.assets)) { toast('AUS005 dataset not found.'); return; }
+  if (assets.length && !confirm('Load the AFSPL (Australia) AUS005 register into the AUS005 entity?')) return;
+  snapshotActiveEntity();
+  applyBundledDataset(data);
+  applySettingsToUI();
+  renderAll();
+  activateTab(assets.length ? 'acct' : 'data');
+  toast(assets.length
+    ? 'AUS005 (AFSPL) register loaded (' + assets.length + ' assets).'
+    : 'AUS005 (AFSPL) entity ready — no assets yet. Import a JSON backup or add assets.');
 }
 
 function sampleData() {
@@ -1535,6 +1582,7 @@ function wire() {
   $('#btn-sample').addEventListener('click', loadSample);
   $('#btn-aus155').addEventListener('click', loadAUS155);
   const b501 = $('#btn-aus501'); if (b501) b501.addEventListener('click', loadAUS501);
+  const b005 = $('#btn-aus005'); if (b005) b005.addEventListener('click', loadAUS005);
   const esel = $('#entity-select'); if (esel) esel.addEventListener('change', e => switchEntity(e.target.value));
   $('#btn-clear').addEventListener('click', clearAll);
   $('#btn-save-settings').addEventListener('click', saveSettingsFromUI);
