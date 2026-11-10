@@ -130,6 +130,13 @@ function taxMethodOf(a) {
    resolved to the category and depreciation status it held AS AT the reporting
    date, not its latest state. */
 function hasWIP(a) { return !!(a && a.wipCategory && parseDate(a.inServiceDate)); }
+/* Tax claim on cost incurred. Capitalised development cost (mainly payroll) is
+   deducted for tax in the year it is capitalised, not when the software is
+   placed in service — e.g. Singapore deducts capitalised salaries under s14
+   as incurred. When set, the tax schedule starts at the acquisition
+   (capitalisation) date even while the asset is still WIP; accounting is
+   unaffected and still waits for the in-service date. */
+function claimsOnIncurred(a) { return !!(a && a.taxClaimOnIncurred) && settings.taxRegime !== 'mirror'; }
 /* Date depreciation starts — the in-service date, else the acquisition date. */
 function depStartDate(a) { return parseDate(a.inServiceDate) || parseDate(a.acquisitionDate); }
 /* Category the asset is presented under as at a given date. */
@@ -185,7 +192,9 @@ function buildSchedule(a, kind, asOf) {
 
   const disposal = a.disposed ? parseDate(a.disposalDate) : null;
   const horizon = asOf || reportingDate();
-  const depStart = opWDV || depStartDate(a) || acq;   // depreciation begins here (in-service date)
+  // Depreciation begins at the in-service date — except a tax schedule claimed
+  // on cost incurred, which begins at acquisition (capitalisation) even for WIP.
+  const depStart = opWDV || (kind === 'tax' && claimsOnIncurred(a) ? acq : depStartDate(a)) || acq;
 
   // `gross` is the full cost an allowance RATE applies to; `base` is the carrying
   // amount the schedule starts from (the two differ in opening-balance mode).
@@ -637,9 +646,12 @@ function registerLines(a, kind) {
   // is still WIP and falls through to the single-line branch below.
   const transferThisFY = hasWIP(a) && svc && svc >= fyStart && svc <= fyEnd && H >= svc && acq && !sameFY(acq, svc);
   if (transferThisFY) {
+    // A tax asset claimed on cost incurred has already been written down while in
+    // WIP, so only its written-down value (usually nil) transfers, not its cost.
+    const xfer = kind === 'tax' && claimsOnIncurred(a) ? m.opening : cost;
     return [
-      { cat: a.wipCategory, opening: cost, addition: 0, transfer: -cost, charge: 0, disposal: 0, closing: 0, sched: null, transferRow: -1 },
-      { cat: a.category || 'Uncategorised', opening: 0, addition: 0, transfer: cost, charge: m.charge, disposal: m.disposal, closing: m.closing, sched: m.sched, transferRow: 1 },
+      { cat: a.wipCategory, opening: xfer, addition: 0, transfer: -xfer, charge: 0, disposal: 0, closing: 0, sched: null, transferRow: -1 },
+      { cat: a.category || 'Uncategorised', opening: 0, addition: 0, transfer: xfer, charge: m.charge, disposal: m.disposal, closing: m.closing, sched: m.sched, transferRow: 1 },
     ];
   }
   return [{ cat: categoryAsAt(a, H), opening: m.opening, addition: m.addition, transfer: 0, charge: m.charge, disposal: m.disposal, closing: m.closing, sched: m.sched, transferRow: 0 }];
@@ -1155,6 +1167,7 @@ function openAsset(id) {
       <div class="field"><label>Tax rate %</label><input id="f-taxRate" type="number" step="0.01" value="${esc(g('taxRate'))}" placeholder="e.g. 30"></div>
       <div class="field"><label>Prime-cost life (years) <span class="hint-text">(if no rate)</span></label><input id="f-taxLife" type="number" step="0.5" value="${esc(g('taxLife'))}"></div>
       <div class="field"><label>Initial allowance %</label><input id="f-taxInitialAllowance" type="number" step="0.01" value="${esc(g('taxInitialAllowance'))}" placeholder="optional first-year %"></div>
+      <div class="field full"><label><input type="checkbox" id="f-taxClaimOnIncurred" ${a.taxClaimOnIncurred ? 'checked' : ''}> Claim tax when cost is incurred <span class="hint-text">(capitalised development / payroll: tax starts at the acquisition date even while in WIP, not at the in-service date)</span></label></div>
       <div class="field"><label>Tax opening date <span class="hint-text">(WDV b/f; blank = full history)</span></label><input id="f-taxOpeningDate" type="date" value="${esc(g('taxOpeningDate'))}"></div>
       <div class="field"><label>Tax opening cost</label><input id="f-taxOpeningCost" type="number" step="0.01" value="${esc(g('taxOpeningCost'))}"></div>
       <div class="field"><label>Tax opening accumulated depn</label><input id="f-taxOpeningAccDep" type="number" step="0.01" value="${esc(g('taxOpeningAccDep'))}"></div>
@@ -1217,6 +1230,10 @@ function saveAsset() {
     taxOpeningDate: val('f-taxOpeningDate'),
     taxOpeningCost: val('f-taxOpeningCost'),
     taxOpeningAccDep: val('f-taxOpeningAccDep'),
+    // Mirror regime hides the checkbox — keep the stored value so it applies again
+    // if the entity moves to a capital-allowance regime.
+    taxClaimOnIncurred: $('#f-taxClaimOnIncurred') ? $('#f-taxClaimOnIncurred').checked
+      : !!((assets.find(x => x.id === editingId) || {}).taxClaimOnIncurred),
     disposed: $('#f-disposed').checked,
     disposalDate: val('f-disposalDate'),
     disposalProceeds: val('f-disposalProceeds'),

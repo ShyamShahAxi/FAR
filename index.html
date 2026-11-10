@@ -97,7 +97,7 @@
           <button id="exp-tax">Export CSV</button>
         </div>
       </div>
-      <div class="card" id="tax-sg-legend" style="padding:14px 18px"><p class="legend" style="margin:0">Capital allowances (Singapore): Computer Equipment and Software Development are written off 100% in the year they enter service (S19A one-year write-off); Furniture, Fixtures and Leasehold over 3 years. Allowances are <strong>not</strong> time-apportioned — a full annual allowance is claimed in each year of assessment the asset is in use. WIP claims nothing until it transfers in. The <strong>Deferred tax</strong> column shows the liability on the temporary difference (accounting NBV − tax WDV) at your set rate.</p></div>
+      <div class="card" id="tax-sg-legend" style="padding:14px 18px"><p class="legend" style="margin:0">Capital allowances (Singapore): Computer Equipment is written off 100% in the year it enters service (S19A one-year write-off); other equipment (e.g. AV), Furniture, Fixtures and Leasehold over 3 years. Capitalised development cost (payroll) is deducted in the year it is <strong>capitalised</strong>, including while it sits in Asset WIP (revenue deduction of salaries as incurred, as filed from YA 2025), so only its nil written-down value transfers when it goes into service. Allowances are <strong>not</strong> time-apportioned. The <strong>Deferred tax</strong> column shows the liability on the temporary difference (accounting NBV − tax WDV) at your set rate.</p></div>
       <div class="card" id="tax-au-legend" style="padding:14px 18px;display:none"><p class="legend" style="margin:0">Capital allowances (Australia, Div 40): assets are written off on the <strong>prime cost</strong> basis over their effective life, apportioned by <strong>days held</strong> in the first year. Assets written off in full under <strong>Temporary Full Expensing</strong>, the <strong>Instant Asset Write-Off</strong> or an immediate deduction are carried at nil tax written-down value. Tax effective lives differ from the accounting useful lives — leasehold improvements and fixtures are written off over <strong>40 years</strong> (2.5%) for tax against 5 years for accounting — so a real temporary difference arises. Written-down values are brought forward from the prior return at 1 July; WIP claims nothing until it is placed in service. The <strong>Deferred tax</strong> column shows the effect of the temporary difference (accounting NBV − tax WDV) at your set rate.</p></div>
       <div class="card" id="tax-mirror-legend" style="padding:14px 18px;display:none"><p class="legend" style="margin:0">Tax depreciation <strong>mirrors accounting</strong> for this entity: the same cost base, method, useful life, residual value and day-count proration are applied, so no separate tax cost base or capital-allowance rate is used. Tax written-down value therefore equals accounting net book value, the temporary difference (NBV &minus; Tax WDV) is nil and <strong>no deferred tax</strong> arises. Change the entity's tax regime if a separate capital-allowance basis is later required.</p></div>
       <div class="table-wrap" id="tax-wrap"></div>
@@ -201,9 +201,9 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="data-aus155.js?v=16"></script>
+  <script src="data-aus155.js?v=17"></script>
   <script src="data-aus501.js?v=12"></script>
   <script src="data-aus005.js?v=2"></script>
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
