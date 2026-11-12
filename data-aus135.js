@@ -26,18 +26,18 @@
 
    Tax — regime 'cy': Cyprus wear-and-tear allowances on cost, a FULL annual
    allowance in each year the asset is in use (no time-apportionment).
-     * FY25 is AS FILED: BDO claimed the book depreciation (1,148, i.e.
-       1,149.08 unrounded) as wear and tear. settings.taxMirrorUntil =
-       30 Jun 2025 makes every FY up to then claim the accounting charge, so
-       FY25 tax WDV = NBV and no temporary difference arises (none was booked).
-     * From FY26 the statutory rates apply on cost, capped at the remaining
-       WDV: computer hardware 20%; CCTV and TV/AV equipment 10% (plant &
-       equipment / furniture & fittings).
+     * Statutory rates on cost from FY25, capped at the remaining WDV:
+       computer hardware 20%; CCTV and TV/AV equipment 10% (plant &
+       equipment / furniture & fittings). FY25 = 4,230.40.
+     * BDO's FY25 return claimed the book depreciation (1,148) instead; the
+       3,082.40 shortfall is trued up in the FY26 provision as a prior-year
+       over-provision. To reproduce BDO's as-filed tax WDV, set
+       settings.taxMirrorUntil = "2025-06-30" (FYs up to then claim book dep).
    Deferred tax at 15% — the Cyprus corporate rate enacted from tax year 2026.
    Confirm rates and the transferred-asset tax cost before filing.
    ============================================================= */
 window.AUS135 = {
-  "version": "AUS135-2026-06-30.1",
+  "version": "AUS135-2026-06-30.2",
   "settings": {
     "companyName": "AXI Services (Cyprus) Limited - AUS135",
     "currency": "$",
@@ -46,7 +46,7 @@ window.AUS135 = {
     "reportingDate": "2026-06-30",
     "dtRate": 15,
     "taxRegime": "cy",
-    "taxMirrorUntil": "2025-06-30"
+    "taxMirrorUntil": ""
   },
   "assets": [
     {
