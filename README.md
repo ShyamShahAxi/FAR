@@ -72,6 +72,26 @@ The recomputed register ties to the source exports within a few cents on every l
 
 > Confirm the effective lives, write-off elections and rates against current Australian tax law before relying on the figures.
 
+### Bundled AUS135 dataset (AXI Services (Cyprus) Limited)
+
+`data-aus135.js` is the **AXI Services (Cyprus) Limited** register for **FY26** (1 Jul 2025 – 30 Jun 2026), with FY25 (3 Jun 2024 – 30 Jun 2025, the first period) as history. Functional currency USD; deferred tax at **15%**.
+
+- **FY25** is the seven computer-equipment lines in BDO's wear-and-tear computation in the signed FS (cost 83,780.07 per audit adjustment AJE 9). Accounting is straight-line over 3 years by days, with in-service dates fitted to BDO's charges; depreciation ties to AJE 9 (1,149.08).
+- **FY26 additions** (GL 140100: 114,700.01, including assets transferred from Solaris EMEA with 28,141.99 accumulated depreciation) are carried as **one aggregate line** at net consideration 86,558.02, because no per-asset listing was available. Its NBV and depreciation tie to the GL. Replace it with the Sage FY26 asset export.
+- **Tax regime `cy`** gives a full annual wear-and-tear allowance on cost, not time-apportioned: computer hardware 20%, CCTV/TV equipment 10%. **`taxMirrorUntil: 2025-06-30`** makes FY25 claim the book depreciation, exactly as BDO filed it. Tax WDV then equals NBV at 30 Jun 2025, so there is no temporary difference (none was booked). From FY26 the statutory rates apply.
+
+| | FY25 | FY26 |
+|---|---|---|
+| Accounting depreciation | 1,149.08 | 40,528.10 |
+| Wear and tear allowances | 1,149.08 (book, as filed) | 33,471.82 |
+| Closing NBV (ties to GL) | 82,630.99 | 128,660.91 |
+| Closing tax WDV | 82,630.99 | 135,717.19 |
+| Temporary difference | nil | (7,056.28) → DTA 1,058 at 15% |
+
+> Confirm the wear-and-tear rates and the tax cost of the transferred assets against Cyprus law before filing.
+
+`settings.taxMirrorUntil` is generic. Any entity can use it to claim book depreciation for tax in the financial years ending on or before that date, then switch to its own tax basis.
+
 ### Work in progress → in-service (effective-dated reclassification)
 
 An asset can hold a **WIP category** and a **placed-in-service date** (set them on the asset form). Until that date the asset sits under the WIP holding category, carried at cost with **no depreciation**; from that date it transfers to its **operating category** (the asset's `category`) and begins depreciating over its useful life from the in-service date. Both attributes are **effective-dated**: every register resolves each asset to the category and depreciation status it held *as at the reporting date*, so **placing a WIP item into service in a later year never disturbs the prior years**. In the year of transfer the register shows a matched **transfer-out** of the WIP category and **transfer-in** to the operating category (netting to nil on cost, so category subtotals reconcile).

@@ -222,6 +222,15 @@ function buildSchedule(a, kind, asOf) {
     ? endOfLife(a, depStart, 'straight-line', lifeYears)
     : (method === 'prime-cost' && lifeYears && !rate ? endOfLife(a, depStart, 'prime-cost', lifeYears) : null);
 
+  // Book-basis years (settings.taxMirrorUntil): every financial year ending on
+  // or before this date claims the accounting depreciation as the tax
+  // allowance — e.g. Cyprus FY25, where the filed computation (BDO) claimed
+  // book depreciation as wear and tear. Later years revert to the statutory
+  // basis on the resulting written-down value.
+  const mirrorUntil = kind === 'tax' && settings.taxMirrorUntil && settings.taxRegime !== 'mirror' ? parseDate(settings.taxMirrorUntil) : null;
+  const bookCharge = new Map();
+  if (mirrorUntil) buildSchedule(a, 'acct', horizon).rows.forEach(r => { if (r.fyEnd <= mirrorUntil) bookCharge.set(r.fyEnd.getTime(), r.charge); });
+
   const rows = [];
   let opening = 0;
   let accumulated = opWDV ? openAccDep : 0;
@@ -297,6 +306,9 @@ function buildSchedule(a, kind, asOf) {
       const adjEnd = a.acctDepAdjDate ? fyEndFor(parseDate(a.acctDepAdjDate)) : fyEndFor(horizon);
       if (adjEnd && fyEnd.getTime() === adjEnd.getTime()) charge += num(a.acctDepAdjustment);
     }
+
+    // Book-basis year: the allowance is the accounting depreciation (as filed).
+    if (mirrorUntil && fyEnd <= mirrorUntil) charge = Math.min(bookCharge.get(fyEnd.getTime()) || 0, Math.max(0, opening));
 
     accumulated += charge;
     carry = opening - charge;
@@ -772,6 +784,7 @@ function renderRegister(kind) {
     const sg = $('#tax-sg-legend'); if (sg) sg.style.display = settings.taxRegime === 'sg' ? '' : 'none';
     const au = $('#tax-au-legend'); if (au) au.style.display = settings.taxRegime === 'au' ? '' : 'none';
     const mir = $('#tax-mirror-legend'); if (mir) mir.style.display = settings.taxRegime === 'mirror' ? '' : 'none';
+    const cyl = $('#tax-cy-legend'); if (cyl) cyl.style.display = settings.taxRegime === 'cy' ? '' : 'none';
   }
   if (kind === 'tax' && settings.taxRegime === 'uk-pool' && settings.taxPool) { renderTaxPool(); return; }
   const wrap = $('#' + kind + '-wrap');
@@ -1386,7 +1399,7 @@ function applyBundledDataset(data) {
    short code taken from the dataset version (e.g. "AUS155-2026-…" → AUS155), so
    the header dropdown can switch between them. The active entity is snapshotted
    into the archive only when leaving it. */
-function bundledDatasets() { return [window.AUS155, window.AUS501, window.AUS005].filter(d => d && Array.isArray(d.assets)); }
+function bundledDatasets() { return [window.AUS155, window.AUS501, window.AUS005, window.AUS135].filter(d => d && Array.isArray(d.assets)); }
 function entityCodeOf(dataOrVer) {
   const v = typeof dataOrVer === 'string' ? dataOrVer : (dataOrVer && dataOrVer.version) || '';
   return v.split('-')[0] || '';
@@ -1465,6 +1478,19 @@ function loadAUS501() {
   renderAll();
   activateTab('acct');
   toast('AUS501 (UK) register loaded (' + assets.length + ' assets).');
+}
+
+function loadAUS135() {
+  if (settings.locked) { toast('Year is locked — unlock first.'); return; }
+  const data = window.AUS135;
+  if (!data || !Array.isArray(data.assets)) { toast('AUS135 dataset not found.'); return; }
+  if (assets.length && !confirm('Load the AXI Services (Cyprus) AUS135 register into the AUS135 entity?')) return;
+  snapshotActiveEntity();
+  applyBundledDataset(data);
+  applySettingsToUI();
+  renderAll();
+  activateTab('acct');
+  toast('AUS135 (Cyprus) register loaded (' + assets.length + ' assets).');
 }
 
 function loadAUS005() {
@@ -1624,6 +1650,7 @@ function wire() {
   $('#btn-aus155').addEventListener('click', loadAUS155);
   const b501 = $('#btn-aus501'); if (b501) b501.addEventListener('click', loadAUS501);
   const b005 = $('#btn-aus005'); if (b005) b005.addEventListener('click', loadAUS005);
+  const b135 = $('#btn-aus135'); if (b135) b135.addEventListener('click', loadAUS135);
   const esel = $('#entity-select'); if (esel) esel.addEventListener('change', e => switchEntity(e.target.value));
   $('#btn-clear').addEventListener('click', clearAll);
   $('#btn-save-settings').addEventListener('click', saveSettingsFromUI);
