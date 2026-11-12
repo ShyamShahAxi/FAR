@@ -100,6 +100,7 @@
       <div class="card" id="tax-sg-legend" style="padding:14px 18px"><p class="legend" style="margin:0">Capital allowances (Singapore): Computer Equipment is written off 100% in the year it enters service (S19A one-year write-off); other equipment (e.g. AV), Furniture, Fixtures and Leasehold over 3 years. Capitalised development cost (payroll) is deducted in the year it is <strong>capitalised</strong>, including while it sits in Asset WIP (revenue deduction of salaries as incurred, as filed from YA 2025), so only its nil written-down value transfers when it goes into service. Allowances are <strong>not</strong> time-apportioned. The <strong>Deferred tax</strong> column shows the liability on the temporary difference (accounting NBV − tax WDV) at your set rate.</p></div>
       <div class="card" id="tax-au-legend" style="padding:14px 18px;display:none"><p class="legend" style="margin:0">Capital allowances (Australia, Div 40): assets are written off on the <strong>prime cost</strong> basis over their effective life, apportioned by <strong>days held</strong> in the first year. Assets written off in full under <strong>Temporary Full Expensing</strong>, the <strong>Instant Asset Write-Off</strong> or an immediate deduction are carried at nil tax written-down value. Tax effective lives differ from the accounting useful lives — leasehold improvements and fixtures are written off over <strong>40 years</strong> (2.5%) for tax against 5 years for accounting — so a real temporary difference arises. Written-down values are brought forward from the prior return at 1 July; WIP claims nothing until it is placed in service. The <strong>Deferred tax</strong> column shows the effect of the temporary difference (accounting NBV − tax WDV) at your set rate.</p></div>
       <div class="card" id="tax-mirror-legend" style="padding:14px 18px;display:none"><p class="legend" style="margin:0">Tax depreciation <strong>mirrors accounting</strong> for this entity: the same cost base, method, useful life, residual value and day-count proration are applied, so no separate tax cost base or capital-allowance rate is used. Tax written-down value therefore equals accounting net book value, the temporary difference (NBV &minus; Tax WDV) is nil and <strong>no deferred tax</strong> arises. Change the entity's tax regime if a separate capital-allowance basis is later required.</p></div>
+      <div class="card" id="tax-cy-legend" style="padding:14px 18px;display:none"><p class="legend" style="margin:0">Wear and tear allowances (Cyprus): a <strong>full annual allowance</strong> on cost in each year the asset is in use, with no time-apportionment — computer hardware <strong>20%</strong>, plant, equipment and furniture <strong>10%</strong>. FY25 is <strong>as filed</strong>: BDO claimed the book depreciation as wear and tear, so the tax register opens at 1 July 2025 at BDO's filed written-down values and the statutory rates apply from FY26. The <strong>Deferred tax</strong> column shows the effect of the temporary difference (accounting NBV − tax WDV) at the enacted 15% rate.</p></div>
       <div class="table-wrap" id="tax-wrap"></div>
     </section>
 
@@ -178,10 +179,11 @@
             <button id="btn-aus155">Load AUS155 (Singapore) register</button>
             <button id="btn-aus501">Load AUS501 (UK) register</button>
             <button id="btn-aus005">Load AUS005 (AFSPL) register</button>
+            <button id="btn-aus135">Load AUS135 (Cyprus) register</button>
             <button id="btn-sample">Load generic sample</button>
             <button class="danger" id="btn-clear">Clear all data</button>
           </div>
-          <p class="legend">Switch entities from the <strong>Entity</strong> selector in the header — each keeps its own register, settings and reporting date. <strong>AUS155</strong> is the Singapore register (30 Jun 2026). <strong>AUS501</strong> is the CB Financial Services (UK) register for FY25 (1 Jul 2024 – 30 Jun 2025), with UK pooled capital allowances. <strong>AUS005</strong> is AxiCorp Financial Services Pty Ltd (AFSPL, Australia) for FY25, built from the Sage accounting and tax exports, with Australian Div 40 capital allowances on their own basis.</p>
+          <p class="legend">Switch entities from the <strong>Entity</strong> selector in the header — each keeps its own register, settings and reporting date. <strong>AUS155</strong> is the Singapore register (30 Jun 2026). <strong>AUS501</strong> is the CB Financial Services (UK) register for FY25 (1 Jul 2024 – 30 Jun 2025), with UK pooled capital allowances. <strong>AUS005</strong> is AxiCorp Financial Services Pty Ltd (AFSPL, Australia) for FY25, built from the Sage accounting and tax exports, with Australian Div 40 capital allowances on their own basis. <strong>AUS135</strong> is AXI Services (Cyprus) Limited for FY26 (with FY25 history), with Cyprus wear and tear allowances from the BDO-filed FY25 position.</p>
         </div>
       </div>
     </section>
@@ -204,6 +206,7 @@
   <script src="data-aus155.js?v=17"></script>
   <script src="data-aus501.js?v=12"></script>
   <script src="data-aus005.js?v=2"></script>
+  <script src="data-aus135.js?v=1"></script>
   <script src="app.js?v=28"></script>
 </body>
 </html>
